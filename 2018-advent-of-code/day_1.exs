@@ -7,6 +7,12 @@ defmodule Day1 do
   @doc """
   Read a list of modulations (positive or negative integers) from a file.
 
+  Example data:
+  +10
+  -9
+  +12
+  +5
+
   Returns a list of integer values for each line in the input file.
   """
   def input_to_list() do
