@@ -30,11 +30,33 @@ defmodule Day3 do
     Enum.reduce(coords, acc, fn coord, acc -> Map.put(acc, coord, Map.get(acc, coord, 0) + 1) end)
   end
 
+  @doc """
+  Analyze all the claims in the input file and identify how many squares have
+  overlapping claims, that is, multiple claims cross the same squares of
+  fabric.
+  """
   def overlapping_claims() do
     Enum.reduce(input_to_list(), %{}, &claim_reducer/2)
     |> Map.values
     |> Enum.filter(fn x -> x > 1 end)
     |> Kernel.length
+  end
+
+  defp assess_claim(claim, all_claims) do
+    [left, top, width, height] = parse_line(claim)
+    coords = for x <- left..(left + width - 1), y <- top..(top + height - 1), do: {x, y}
+
+    Enum.all?(coords, fn coord -> Map.get(all_claims, coord) == 1 end)
+  end
+
+  @doc """
+  Identify the claim which does not overlap with any other claim.
+  """
+  def isolated_claim() do
+    input = input_to_list()
+    all_claims = Enum.reduce(input, %{}, &claim_reducer/2)
+
+    Enum.filter(input, fn claim -> assess_claim(claim, all_claims) end)
   end
 end
 
@@ -71,6 +93,7 @@ defmodule Day3Test do
   end
 
   test "part two" do
+    IO.puts(isolated_claim())
   end
 end
 
