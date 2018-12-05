@@ -9,7 +9,7 @@ defmodule Hamming do
   """
   @spec hamming_distance([char], [char]) :: non_neg_integer
   def hamming_distance(strand1, strand2) do
-    distance(strand1, strand2, 0)
+    distance(String.to_charlist(strand1), String.to_charlist(strand2), 0)
   end
 
   defp distance([], [], acc), do: {:ok, acc}
