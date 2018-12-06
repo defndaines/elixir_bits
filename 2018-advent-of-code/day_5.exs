@@ -31,6 +31,19 @@ defmodule Day5 do
   def scan_for_reaction([ch | rest], acc, last) do
     scan_for_reaction(rest, [ch | acc], last)
   end
+
+  @doc """
+  Scan an input string for reactions, but selectively remove one polymer from
+  the entire chain and return the value which produces the smallest sequence.
+  """
+  def scan_with_removal(input) do
+    Enum.map(?A..?Z, fn ch -> Regex.compile!(to_string(['[', ch, ch + 32, ']'])) end)
+    |> Enum.map(fn regex -> String.replace(input, regex, "") end)
+    |> Enum.map(&(Task.async(fn -> scan_for_reaction(&1) end)))
+    |> Enum.map(&Task.await/1)
+    |> Enum.sort(&(length(&1) <= length(&2)))
+    |> Enum.at(0)
+  end
 end
 
 ExUnit.start()
@@ -51,7 +64,14 @@ defmodule Day5Test do
     IO.puts(length(result))
   end
 
+  test "scan for best with removed polymer" do
+    input = "dabAcCaCBAcCcaDA"
+    'daDA' = scan_with_removal(input)
+  end
+
   test "part two" do
-    # IO.puts()
+    {:ok, input} = File.read("input")
+    result = scan_with_removal(input)
+    IO.puts(length(result))
   end
 end
