@@ -1,6 +1,6 @@
 defmodule Day2 do
   @moduledoc """
-  Solutions to Day 2 of 2018 Advent of Code.
+  Solutions to Day 2 of 2018 Advent of Code. Inventory Management System
   https://adventofcode.com/2018/day/2
   """
 

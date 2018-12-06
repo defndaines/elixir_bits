@@ -1,6 +1,6 @@
 defmodule Day1 do
   @moduledoc """
-  Solutions to Day 1 of 2018 Advent of Code.
+  Solutions to Day 1 of 2018 Advent of Code. Chronal Calibration
   https://adventofcode.com/2018/day/1
   """
 
@@ -27,9 +27,8 @@ defmodule Day1 do
 
   Returns the final result of applying all calibrations.
   """
-  def calibrate([], acc), do: acc
-  def calibrate([head | tail], acc) do
-    calibrate(tail, acc + head)
+  def calibrate(inputs) do
+    Enum.reduce(inputs, 0, &+/2)
   end
 
   @doc """
@@ -64,7 +63,7 @@ defmodule Day1Test do
   import Day1
 
   test "part one" do
-    result = calibrate(input_to_list(), 0)
+    result = calibrate(input_to_list())
     IO.puts(result)
   end
 

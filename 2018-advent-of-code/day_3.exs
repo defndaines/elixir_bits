@@ -1,6 +1,6 @@
 defmodule Day3 do
   @moduledoc """
-  Solutions to Day 3 of 2018 Advent of Code.
+  Solutions to Day 3 of 2018 Advent of Code. No Matter How You Slice It
   https://adventofcode.com/2018/day/3
   """
 
