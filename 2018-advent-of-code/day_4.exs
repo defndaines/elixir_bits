@@ -51,13 +51,36 @@ defmodule Day4 do
     end
   end
 
-  def sleep_comparator({_, a}, {_, b}) do
+  defp time_asleep_comparator({_, a}, {_, b}) do
     Enum.reduce(Map.values(a), &+/2) >= Enum.reduce(Map.values(b), &+/2)
   end
 
+  @doc """
+  Find the guard that has the most minutes asleep. What minute does that guard
+  spend asleep the most?
+
+  Return the ID of the guard multiplied by the minute.
+  """
   def strategy_one() do
     {_, _, all_records} = Enum.reduce(input_to_list(), {nil, nil, %{}}, &assess_record/2)
-    [{sleepiest_guard, minutes} | _] = Enum.sort(all_records, &sleep_comparator/2)
+    [{sleepiest_guard, minutes} | _] = Enum.sort(all_records, &time_asleep_comparator/2)
+    [{minute, _} | _] = Enum.sort(minutes, fn {_, v1}, {_, v2} -> v1 >= v2 end)
+    sleepiest_guard * minute
+  end
+
+  defp sleep_minute_comparator({_, a}, {_, b}) do
+    Enum.at(Enum.sort(Map.values(a), &(&1 >= &2)), 0) >=
+      Enum.at(Enum.sort(Map.values(b), &(&1 >= &2)), 0)
+  end
+
+  @doc """
+  Of all guards, which guard is most frequently asleep on the same minute?
+
+  Return the ID of the guard multiplied by the minute.
+  """
+  def strategy_two() do
+    {_, _, all_records} = Enum.reduce(input_to_list(), {nil, nil, %{}}, &assess_record/2)
+    [{sleepiest_guard, minutes} | _] = Enum.sort(all_records, &sleep_minute_comparator/2)
     [{minute, _} | _] = Enum.sort(minutes, fn {_, v1}, {_, v2} -> v1 >= v2 end)
     sleepiest_guard * minute
   end
@@ -121,6 +144,7 @@ defmodule Day4Test do
   end
 
   test "part two" do
-    # IO.puts()
+    result = strategy_two()
+    IO.puts(result)
   end
 end
