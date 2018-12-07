@@ -89,6 +89,27 @@ defmodule Day6 do
 
     size
   end
+
+  def distance_to_all_points(point, coords) do
+    Enum.map(coords, fn coord -> manhattan_distance(point, coord) end)
+    |> Enum.sum
+  end
+
+  @doc """
+  Evaluate all points near the known coordinates and find the size of the area
+  with the smallest accumulated distances to all those coordinates. Limit the
+  area to those points where the sum of these distances is less than 10,000.
+  """
+  def area_with_smallest_total_distance() do
+    coords = input_to_list()
+    {{min_x, min_y}, {max_x, max_y}} = bounds(coords)
+    all_points = for x <- min_x..max_x, y <- min_y..max_y, do: {x, y}
+
+    Enum.map(all_points, &(Task.async(fn -> {&1, distance_to_all_points(&1, coords)} end)))
+    |> Enum.map(&Task.await/1)
+    |> Enum.filter(fn {_, dist} -> dist < 10000 end)
+    |> Kernel.length
+  end
 end
 
 ExUnit.start()
@@ -141,7 +162,14 @@ defmodule Day6Test do
     IO.puts(result)
   end
 
+  test "distant to all points" do
+    coords = [{1, 1}, {1, 6}, {8, 3}, {3, 4}, {5, 5}, {8, 9}]
+
+    30 = distance_to_all_points({4, 3}, coords)
+  end
+
   test "part two" do
-    # IO.puts()
+    result = area_with_smallest_total_distance()
+    IO.puts(result)
   end
 end
