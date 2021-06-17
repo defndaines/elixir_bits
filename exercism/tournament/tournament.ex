@@ -22,24 +22,39 @@ defmodule Tournament do
     |> Enum.join("\n")
   end
 
+  @doc """
+  Increase the tally for a given team's metric by one. If no metrics have been
+  recorded yet for that team or that metric, it will be set to 1.
+  """
+  @spec bump(records :: map(), team :: String.t(), metric :: atom()) :: map() 
+  defp bump(records, team, metric) do
+    update_in(records, [Access.key(team, %{}), Access.key(metric, 0)], &(&1 + 1))
+  end
+
   defp tally_acc(e, acc) do
     case String.split(e, ";") do
       [team_1, team_2, "win"] ->
         acc
-        |> update_in([Access.key(team_1, %{}), Access.key(:wins, 0)], &(&1 + 1))
-        |> update_in([Access.key(team_2, %{}), Access.key(:losses, 0)], &(&1 + 1))
+        |> bump(team_1, :wins)
+        |> bump(team_2, :losses)
       [team_1, team_2, "loss"] ->
         acc
-        |> update_in([Access.key(team_1, %{}), Access.key(:losses, 0)], &(&1 + 1))
-        |> update_in([Access.key(team_2, %{}), Access.key(:wins, 0)], &(&1 + 1))
+        |> bump(team_1, :losses)
+        |> bump(team_2, :wins)
       [team_1, team_2, "draw"] ->
         acc
-        |> update_in([Access.key(team_1, %{}), Access.key(:draws, 0)], &(&1 + 1))
-        |> update_in([Access.key(team_2, %{}), Access.key(:draws, 0)], &(&1 + 1))
+        |> bump(team_1, :draws)
+        |> bump(team_2, :draws)
       _ -> acc
     end
   end
 
+  @doc """
+  Given a map of wins, losses, and draws for a given team, calculate the total
+  number of matches participated in and the overall points the team has from
+  their wins and draws.
+  """
+  @spec summarize(entry :: {String.t(), map()}) :: {String.t(), map()}
   defp summarize({team, results}) do
     {
       team,
