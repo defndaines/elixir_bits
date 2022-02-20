@@ -4,10 +4,9 @@ end
 
 defmodule Sample.Manager do
   @moduledoc """
-  'Parent' module for Process Managers to use to ensure a common set of functionality. This
-  includes ensuring that events are handled in order, and if an event comes in out of sequence,
-  we recover from it. (Out of sequence events typically happen because of DB transactions
-  upstream.)
+  Behaviour module for Process Managers to use to ensure a common set of functionality. This
+  includes ensuring that events are handled in order, and if an event comes in out of sequence, we
+  recover from it. (Out of sequence events typically happen because of DB transactions upstream.)
   """
 
   alias Sample.EventRepo.Event
