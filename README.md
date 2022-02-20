@@ -6,14 +6,14 @@ Repository of miscellaneous Elixir code.
 [Exercism](http://exercism.io/languages/elixir/about) problems.
 
 [2018-advent-of-code](2018-advent-of-code) In December 2018, I did a week of
-Advent of Code in Elixir before getting to busy to continue.
+Advent of Code in Elixir before getting too busy to continue.
 
-[samples](samples) Some anonymized modules pulled from work code in order to
+[samples](samples) Some sanitized modules pulled from work code in order to
 capture some examples of code I've written.
 
-[game_of_life](game_of_life) Toying around with Conway's Game of Life, but not
-in a working state. Was digging into optimizing for indexed access, but got
-busy with non-game life.
+[game_of_life](game_of_life) Toying around with Conway's Game of Life back in
+June 2021, but not in a working state. Was digging into optimizing for indexed
+access, but got busy with non-game life.
 
 ## Elixir Projects
 
@@ -21,7 +21,7 @@ Rundown of other Elixir code I've pushed up to GitHub.
 
 ### Eiga
 
-Personal dataset of movie review from a personal website I maintained up
+Personal dataset of movie reviews from a personal website I maintained up
 until April 2007.
 
 #### Phoenix with GraphQL
@@ -30,8 +30,8 @@ https://github.com/defndaines/eiga/tree/main/phoenix/eiga
 
 2021-12-21
 
-Playing around with Absinthe and GraphQL to expose the movie data with
-relationships.
+Playing around with [Absinthe](https://absinthe-graphql.org/) and GraphQL to
+expose the movie data with relationships.
 
 #### Maru with SQLite
 
