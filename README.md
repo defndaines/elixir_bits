@@ -11,6 +11,10 @@ Advent of Code in Elixir before getting to busy to continue.
 [samples](samples) Some anonymized modules pulled from work code in order to
 capture some examples of code I've written.
 
+[game_of_life](game_of_life} Toying around with Conway's Game of Life, but not
+in a working state. Was digging into optimizing for indexed access, but got
+busy with non-game life.
+
 ## Elixir Projects
 
 Rundown of other Elixir code I've pushed up to GitHub.
