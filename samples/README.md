@@ -7,7 +7,7 @@ cases, the code here was at least 90% originally written by me.
 ## CQRS
 
 Most of these modules were written to integrate into an event-sourced CQRS
-[Command Query Responsibility Segregation] system. 
+[Command Query Responsibility Segregation] system.
 
 [DailyCycler](daily_cycler.ex) is a "cron" server. It is designed to publish
 an event once a day, checking once per hour to see if it should run. We opted
@@ -29,7 +29,8 @@ the event to succeed.
 the system are specific to a single `stream_identifier`, this one has to
 aggregate across multiple streams of events. It uses ETS to track membership
 details. This is not necessarily the most efficient solution, but is good
-enough based upon our normal load.
+enough based upon our normal load. This aggregate is tracked in a `Registry`
+and initializes as the child of a `DynamicSupervisor` (not seen here).
 
 [Manager](manager.ex), [LateFeeProcessManager](late_fee_process_manager.ex),
 and [ProcessManagerHelper](helpers/process_manager_helper.ex) combine to show
@@ -42,7 +43,7 @@ rehydrate from the very first event.
   handles the `GenServer` implementation details. One notable feature is the
   use of `handle_continue` to ensure that hydration occurs before any new
   events come in. Process managers (and projectors) are designed to crash if
-  events come in out of sequence, which could happen because of DB issues. 
+  events come in out of sequence, which could happen because of DB issues.
 - The `LateFeeProcessManager` is a process manager which listens for the
   "SystemCycled" event (created by the `DailyCycler` above), then creates new
   events for any products which are overdue.
