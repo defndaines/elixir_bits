@@ -19,6 +19,14 @@ access, but got busy with non-game life.
 
 Rundown of other Elixir code I've pushed up to GitHub.
 
+### Summoners Tail
+
+Project using the Riot Games API.
+
+https://github.com/defndaines/summoners_tail
+
+2021-02-26
+
 ### Eiga
 
 Personal dataset of movie reviews from a personal website I maintained up
