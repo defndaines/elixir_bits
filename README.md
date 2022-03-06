@@ -25,7 +25,16 @@ Project using the Riot Games API.
 
 https://github.com/defndaines/summoners_tail
 
-2021-02-26
+2022-02-26
+
+### Jishin
+
+Project which monitors USGS earthquake information and notifies subscribers
+via webhooks.
+
+https://github.com/defndaines/jishin
+
+2022-03-05
 
 ### Eiga
 
