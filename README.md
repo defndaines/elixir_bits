@@ -25,7 +25,7 @@ Project using the Riot Games API.
 
 https://github.com/defndaines/summoners_tail
 
-2022-02-26
+2022-03-06
 
 ### Jishin
 
