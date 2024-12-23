@@ -14,7 +14,9 @@ defmodule Sample.LateFeeProcessManager do
   alias Sample.Contexts.FinancialProducts
 
   @impl Sample.Manager
-  def process_event(%{type: "SystemCycled", id: event_id, payload: %{"new_date" => cycle_date}} = event) do
+  def process_event(
+        %{type: "SystemCycled", id: event_id, payload: %{"new_date" => cycle_date}} = event
+      ) do
     Enum.each(
       FinancialProducts.with_outstanding_balance(cycle_date),
       fn product ->
@@ -36,7 +38,8 @@ defmodule Sample.LateFeeProcessManager do
   Calculate the late fee for a given financial product at a point in time determined by
   `event_id`.
   """
-  @spec build_late_fee_event(pos_integer(), FinancialProducts.product_with_outstanding_balance()) :: map() | nil
+  @spec build_late_fee_event(pos_integer(), FinancialProducts.product_with_outstanding_balance()) ::
+          map() | nil
   def build_late_fee_event(_event_id, %{asset_uuid: nil}) do
     Logger.warn("Pending feature.... Unable to calculate late fee for products without assets.")
     nil
@@ -71,7 +74,10 @@ defmodule Sample.LateFeeProcessManager do
         }
 
       {:error, :notfound} ->
-        Logger.warn("Unable to find current value for asset '#{asset_uuid}'. Cannot calculate a late fee.")
+        Logger.warn(
+          "Unable to find current value for asset '#{asset_uuid}'. Cannot calculate a late fee."
+        )
+
         nil
     end
   end

@@ -6,16 +6,19 @@ defmodule Sublist do
   def compare(a, a), do: :equal
   def compare([], _), do: :sublist
   def compare(_, []), do: :superlist
-  def compare(a, b) when (length a) > (length b) do
+
+  def compare(a, b) when length(a) > length(b) do
     do_compare(a, b, :superlist)
   end
-  def compare(a, b) when (length b) > (length a) do
+
+  def compare(a, b) when length(b) > length(a) do
     do_compare(b, a, :sublist)
   end
+
   def compare(_, _), do: :unequal
 
   defp do_compare(a, b, success) do
-    if Enum.any?(Enum.chunk(a, (length b), 1), &(&1 === b)) do
+    if Enum.any?(Enum.chunk(a, length(b), 1), &(&1 === b)) do
       success
     else
       :unequal

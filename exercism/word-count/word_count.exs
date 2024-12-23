@@ -4,12 +4,13 @@ defmodule Words do
 
   Words are compared case-insensitively.
   """
-  @spec count(String.t) :: map
+  @spec count(String.t()) :: map
   def count(sentence) do
     sentence
-    |> String.replace(~r{[,:!&@$%^&_]}u, " ")  # [[:punct:]] includes -
+    # [[:punct:]] includes -
+    |> String.replace(~r{[,:!&@$%^&_]}u, " ")
     |> String.split()
-    |> Enum.group_by(&(String.downcase(&1)))
+    |> Enum.group_by(&String.downcase(&1))
     |> Enum.map(fn {k, v} -> {k, length(v)} end)
     |> Enum.into(%{})
   end

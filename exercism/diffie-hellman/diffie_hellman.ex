@@ -65,6 +65,6 @@ defmodule DiffieHellman do
         ) :: integer
   def generate_shared_secret(prime_p, public_key_b, private_key_a) do
     :crypto.mod_pow(public_key_b, private_key_a, prime_p)
-    |> :binary.decode_unsigned
+    |> :binary.decode_unsigned()
   end
 end

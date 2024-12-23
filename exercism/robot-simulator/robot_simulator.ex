@@ -14,9 +14,11 @@ defmodule RobotSimulator do
   """
   @spec create(direction :: atom, position :: position) :: robot
   def create(direction \\ :north, position \\ {0, 0})
+
   def create(direction, _position) when not is_direction(direction) do
     {:error, "invalid direction"}
   end
+
   def create(direction, {x, y}) when is_position(x, y), do: {direction, {x, y}}
   def create(_direction, _position), do: {:error, "invalid position"}
 

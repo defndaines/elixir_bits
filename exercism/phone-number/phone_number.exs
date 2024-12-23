@@ -16,7 +16,7 @@ defmodule Phone do
   iex> Phone.number("867.5309")
   "0000000000"
   """
-  @spec number(String.t) :: String.t
+  @spec number(String.t()) :: String.t()
   def number(raw) do
   end
 
@@ -37,7 +37,7 @@ defmodule Phone do
   iex> Phone.area_code("867.5309")
   "000"
   """
-  @spec area_code(String.t) :: String.t
+  @spec area_code(String.t()) :: String.t()
   def area_code(raw) do
   end
 
@@ -58,7 +58,7 @@ defmodule Phone do
   iex> Phone.pretty("867.5309")
   "(000) 000-0000"
   """
-  @spec pretty(String.t) :: String.t
+  @spec pretty(String.t()) :: String.t()
   def pretty(raw) do
   end
 end

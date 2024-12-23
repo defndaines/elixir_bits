@@ -17,17 +17,21 @@ defmodule Day5 do
 
   def scan_for_reaction([], acc, last) do
     result = Enum.reverse(acc)
+
     case last == result do
       true -> last
       false -> scan_for_reaction(result, [], result)
     end
   end
-  def scan_for_reaction([a, b | rest], acc, last) when a == (b + 32) do
+
+  def scan_for_reaction([a, b | rest], acc, last) when a == b + 32 do
     scan_for_reaction(rest, acc, last)
   end
-  def scan_for_reaction([a, b | rest], acc, last) when b == (a + 32) do
+
+  def scan_for_reaction([a, b | rest], acc, last) when b == a + 32 do
     scan_for_reaction(rest, acc, last)
   end
+
   def scan_for_reaction([ch | rest], acc, last) do
     scan_for_reaction(rest, [ch | acc], last)
   end
@@ -37,9 +41,9 @@ defmodule Day5 do
   the entire chain and return the value which produces the smallest sequence.
   """
   def scan_with_removal(input) do
-    Enum.map(?A..?Z, fn ch -> Regex.compile!(to_string(['[', ch, ch + 32, ']'])) end)
+    Enum.map(?A..?Z, fn ch -> Regex.compile!(to_string([~c"[", ch, ch + 32, ~c"]"])) end)
     |> Enum.map(fn regex -> String.replace(input, regex, "") end)
-    |> Enum.map(&(Task.async(fn -> scan_for_reaction(&1) end)))
+    |> Enum.map(&Task.async(fn -> scan_for_reaction(&1) end))
     |> Enum.map(&Task.await/1)
     |> Enum.sort(&(length(&1) <= length(&2)))
     |> Enum.at(0)
@@ -55,7 +59,7 @@ defmodule Day5Test do
 
   test "scan for reaction" do
     input = "kKpPcCZQqzyYvVxXVfYLl"
-    'VfY' = scan_for_reaction(input)
+    ~c"VfY" = scan_for_reaction(input)
   end
 
   test "part one" do
@@ -66,7 +70,7 @@ defmodule Day5Test do
 
   test "scan for best with removed polymer" do
     input = "dabAcCaCBAcCcaDA"
-    'daDA' = scan_with_removal(input)
+    ~c"daDA" = scan_with_removal(input)
   end
 
   test "part two" do

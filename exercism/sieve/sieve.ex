@@ -8,6 +8,7 @@ defmodule Sieve do
   end
 
   defp sieve([], acc), do: Enum.reverse(acc)
+
   defp sieve([prime | rest], acc) do
     sieve(Enum.reject(rest, &(rem(&1, prime) == 0)), [prime | acc])
   end

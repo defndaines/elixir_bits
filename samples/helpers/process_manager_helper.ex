@@ -22,7 +22,9 @@ defmodule Sample.Helpers.ProcessManagerHelper do
 
     case ReadRepo.get(ReadRepo.ProjectorPosition, projector_name) do
       nil ->
-        Logger.warn("Position not found. Creating new 'projector_positions' entry for #{projector_name}")
+        Logger.warn(
+          "Position not found. Creating new 'projector_positions' entry for #{projector_name}"
+        )
 
         # If a manager cannot find its last processed event id, assume that it should only work on
         # new events going forward.
@@ -65,9 +67,10 @@ defmodule Sample.Helpers.ProcessManagerHelper do
     latest_event_id = find_position(module)
 
     query =
-      from event in EventRepo.Event,
+      from(event in EventRepo.Event,
         where: event.id > ^latest_event_id,
         order_by: [asc: event.id]
+      )
 
     events = EventRepo.all(query)
 

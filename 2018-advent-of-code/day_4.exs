@@ -16,18 +16,20 @@ defmodule Day4 do
   """
   def input_to_list() do
     {:ok, input} = File.read("input")
+
     String.split(input, "\n", trim: true)
-    |> Enum.sort
+    |> Enum.sort()
   end
 
   defp parse_guard_id(message) do
     Regex.run(~r{ #(\d+) }, message)
     |> Enum.at(1)
-    |> String.to_integer
+    |> String.to_integer()
   end
 
   def parse_line(line) do
-    [minutes, message] = Regex.run(@line_regex, line, [capture: :all_but_first])
+    [minutes, message] = Regex.run(@line_regex, line, capture: :all_but_first)
+
     case String.slice(message, 0, 5) do
       "Guard" -> {:guard, parse_guard_id(message)}
       "falls" -> {:sleep, String.to_integer(minutes)}
@@ -37,9 +39,14 @@ defmodule Day4 do
 
   def update_guard_record(acc, guard_id, start, finish) do
     guard_record = Map.get(acc, guard_id, %{})
-    updated = Enum.reduce(start..(finish - 1),
-      guard_record,
-      fn minute, acc -> Map.put(acc, minute, Map.get(acc, minute, 0) + 1) end)
+
+    updated =
+      Enum.reduce(
+        start..(finish - 1),
+        guard_record,
+        fn minute, acc -> Map.put(acc, minute, Map.get(acc, minute, 0) + 1) end
+      )
+
     Map.put(acc, guard_id, updated)
   end
 
@@ -106,13 +113,18 @@ defmodule Day4Test do
 
   test "input is sorted" do
     input = input_to_list()
-    [ "[1518-03-10 23:57] Guard #73 begins shift",
-      "[1518-03-11 00:06] falls asleep",
-      "[1518-03-11 00:22] wakes up"] = Enum.take(input, 3)
 
-    [ "[1518-11-22 23:59] Guard #3109 begins shift",
+    [
+      "[1518-03-10 23:57] Guard #73 begins shift",
+      "[1518-03-11 00:06] falls asleep",
+      "[1518-03-11 00:22] wakes up"
+    ] = Enum.take(input, 3)
+
+    [
+      "[1518-11-22 23:59] Guard #3109 begins shift",
       "[1518-11-23 00:21] falls asleep",
-      "[1518-11-23 00:29] wakes up"] = Enum.drop(input, 1061)
+      "[1518-11-23 00:29] wakes up"
+    ] = Enum.drop(input, 1061)
   end
 
   test "updating a guard record" do
@@ -130,9 +142,26 @@ defmodule Day4Test do
     {73, 6, %{}} = assess_record(sleep_line, {73, nil, %{}})
 
     wake_line = "[1518-03-11 00:22] wakes up"
-    sleep_minutes = %{6 => 1, 7 => 1, 8 => 1, 9 => 1, 10 => 1, 11 => 1, 12 => 1,
-      13 => 1, 14 => 1, 15 => 1, 16 => 1, 17 => 1, 18 => 1, 19 => 1, 20 => 1,
-      21 => 1}
+
+    sleep_minutes = %{
+      6 => 1,
+      7 => 1,
+      8 => 1,
+      9 => 1,
+      10 => 1,
+      11 => 1,
+      12 => 1,
+      13 => 1,
+      14 => 1,
+      15 => 1,
+      16 => 1,
+      17 => 1,
+      18 => 1,
+      19 => 1,
+      20 => 1,
+      21 => 1
+    }
+
     {73, 6, results} = assess_record(wake_line, {73, 6, %{}})
     assert results == %{73 => sleep_minutes}
     assert Map.keys(Map.get(results, 73)) == Map.keys(sleep_minutes)

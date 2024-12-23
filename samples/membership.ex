@@ -39,7 +39,11 @@ defmodule Sample.Aggregates.Membership do
   defp process_event(%{
          type: type,
          stream_identifier: deal_uuid,
-         payload: %{"product_line_id" => 4, "companies" => [%{"company_uuid" => company_uuid}], "rating_tier" => tier}
+         payload: %{
+           "product_line_id" => 4,
+           "companies" => [%{"company_uuid" => company_uuid}],
+           "rating_tier" => tier
+         }
        })
        when type in ["DealCreated", "DealUpdated"] do
     true =
@@ -64,7 +68,7 @@ defmodule Sample.Aggregates.Membership do
     # Only delete the deal if it is one we've tracked (i.e., a membership deal)
     [[company_uuid]] = :ets.match(:membership, {:"$1", %{deal: deal_uuid}})
 
-    unless lookup(company_uuid) == %{} do
+    if lookup(company_uuid) != %{} do
       :ets.delete(:membership, company_uuid)
     end
   end
@@ -73,9 +77,10 @@ defmodule Sample.Aggregates.Membership do
 
   defp hydrate() do
     EventRepo.all(
-      from e in EventRepo.Event,
+      from(e in EventRepo.Event,
         where: like(e.type, ^"Deal%"),
         order_by: [asc: :id]
+      )
     )
     |> Enum.each(&process_event/1)
   end

@@ -30,9 +30,14 @@ defmodule Array do
 
   def neighbors(array, {x, y}, match_on \\ [1]) do
     [
-      {x - 1, y - 1}, {x - 1, y}, {x - 1, y + 1},
-      {x    , y - 1},             {x    , y + 1},
-      {x + 1, y - 1}, {x + 1, y}, {x + 1, y + 1}
+      {x - 1, y - 1},
+      {x - 1, y},
+      {x - 1, y + 1},
+      {x, y - 1},
+      {x, y + 1},
+      {x + 1, y - 1},
+      {x + 1, y},
+      {x + 1, y + 1}
     ]
     |> Enum.map(fn pos -> get(array, pos) end)
     |> Enum.filter(&(&1 in match_on))

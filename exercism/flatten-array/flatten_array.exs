@@ -16,12 +16,15 @@ defmodule FlattenArray do
   end
 
   defp flatten([], acc), do: acc
+
   defp flatten([head | tail], acc) when is_list(head) do
     flatten(tail, acc ++ flatten(head))
   end
+
   defp flatten([nil | tail], acc) do
     flatten(tail, acc)
   end
+
   defp flatten([head | tail], acc) do
     flatten(tail, acc ++ [head])
   end

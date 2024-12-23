@@ -15,9 +15,11 @@ defmodule Hamming do
   defp distance([], [], acc), do: {:ok, acc}
   defp distance([], _, _), do: {:error, "Lists must be the same length"}
   defp distance(_, [], _), do: {:error, "Lists must be the same length"}
+
   defp distance([c | rest_1], [c | rest_2], acc) do
     distance(rest_1, rest_2, acc)
   end
+
   defp distance([_ | rest_1], [_ | rest_2], acc) do
     distance(rest_1, rest_2, acc + 1)
   end

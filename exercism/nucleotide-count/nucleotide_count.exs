@@ -16,7 +16,8 @@ defmodule NucleotideCount do
   def count(strand, nucleotide) when nucleotide in @nucleotides do
     histogram(strand)[nucleotide]
   end
-  def count(_strand, _nucleotide), do: raise ArgumentError
+
+  def count(_strand, _nucleotide), do: raise(ArgumentError)
 
   @doc """
   Returns a summary of counts by nucleotide.
@@ -28,9 +29,11 @@ defmodule NucleotideCount do
   """
   @spec histogram([char]) :: map
   def histogram(strand) do
-    Enum.reduce(strand,
-                %{?A => 0, ?T => 0, ?C => 0, ?G => 0},
-                &update_or_throw/2)
+    Enum.reduce(
+      strand,
+      %{?A => 0, ?T => 0, ?C => 0, ?G => 0},
+      &update_or_throw/2
+    )
   end
 
   defp update_or_throw(c, map) do

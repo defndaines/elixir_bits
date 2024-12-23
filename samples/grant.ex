@@ -14,7 +14,8 @@ defmodule Sample.CommandHandlers.Grant do
          {:ok, granting} <- total_granting(payload["destinations"]) do
       case Decimal.compare(granting, available) do
         :gt ->
-          {:error, "insufficient total funds available #{available} to cover total grant #{granting}"}
+          {:error,
+           "insufficient total funds available #{available} to cover total grant #{granting}"}
 
         _ ->
           Events.persist_new_event!(
@@ -59,7 +60,8 @@ defmodule Sample.CommandHandlers.Grant do
     end
   end
 
-  defp total_available(source, _), do: {:error, "cannot verify funds available for #{inspect(source)}"}
+  defp total_available(source, _),
+    do: {:error, "cannot verify funds available for #{inspect(source)}"}
 
   defp total_granting(destinations, acc \\ Decimal.new(0))
   defp total_granting([], acc), do: {:ok, acc}

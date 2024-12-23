@@ -18,7 +18,7 @@ defmodule Matrix do
   """
   @spec to_string(matrix :: %Matrix{}) :: String.t()
   def to_string(matrix) do
-    Enum.map(matrix, &(Enum.join(&1, " ")))
+    Enum.map(matrix, &Enum.join(&1, " "))
     |> Enum.join("\n")
   end
 

@@ -83,6 +83,7 @@ defmodule ScaleGenerator do
   def find_chromatic_scale(tonic) when is_flat_scale(tonic) do
     flat_chromatic_scale(tonic)
   end
+
   def find_chromatic_scale(tonic), do: chromatic_scale(tonic)
 
   @doc """
@@ -102,13 +103,16 @@ defmodule ScaleGenerator do
   end
 
   defp do_scale(_scale, "", acc), do: acc
+
   defp do_scale(scale, <<?m, rest::binary>>, acc) do
-    do_scale(tl(scale), rest, acc ++ [hd(scale)]) 
+    do_scale(tl(scale), rest, acc ++ [hd(scale)])
   end
+
   defp do_scale(scale, <<?M, rest::binary>>, acc) do
-    do_scale(Enum.drop(scale, 2), rest, acc ++ [Enum.at(scale, 1)]) 
+    do_scale(Enum.drop(scale, 2), rest, acc ++ [Enum.at(scale, 1)])
   end
+
   defp do_scale(scale, <<?A, rest::binary>>, acc) do
-    do_scale(Enum.drop(scale, 3), rest, acc ++ [Enum.at(scale, 2)]) 
+    do_scale(Enum.drop(scale, 3), rest, acc ++ [Enum.at(scale, 2)])
   end
 end

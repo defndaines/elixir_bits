@@ -1,12 +1,15 @@
 defmodule Bob do
   def hey(input) do
     cond do
-      silence? input ->
+      silence?(input) ->
         "Fine. Be that way!"
-      question? input ->
+
+      question?(input) ->
         "Sure."
-      shouting? input ->
+
+      shouting?(input) ->
         "Whoa, chill out!"
+
       true ->
         "Whatever."
     end
@@ -17,7 +20,7 @@ defmodule Bob do
   end
 
   defp question?(input) do
-    String.ends_with? input, "?"
+    String.ends_with?(input, "?")
   end
 
   defp silence?(input) do

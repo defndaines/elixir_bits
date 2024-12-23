@@ -9,5 +9,5 @@ defmodule LucasNumbers do
     Stream.unfold({2, 1}, fn {a, b} -> {a, {b, a + b}} end) |> Enum.take(count)
   end
 
-  def generate(count), do: raise ArgumentError, "count must be specified as an integer >= 1"
+  def generate(count), do: raise(ArgumentError, "count must be specified as an integer >= 1")
 end

@@ -16,26 +16,33 @@ defmodule Day7 do
   """
   def input_to_list() do
     {:ok, input} = File.read("input")
+
     input
     |> String.split("\n", trim: true)
-    |> Enum.map(fn line -> Regex.run(@line_regex, line, [capture: :all_but_first]) end)
+    |> Enum.map(fn line -> Regex.run(@line_regex, line, capture: :all_but_first) end)
   end
 
   def map_instructions(input) do
-    graph = :digraph.new
-    all_vertices = input |> Enum.reduce(&Enum.concat/2) |> Enum.uniq
+    graph = :digraph.new()
+    all_vertices = input |> Enum.reduce(&Enum.concat/2) |> Enum.uniq()
     for ch <- all_vertices, do: :digraph.add_vertex(graph, ch)
     for [from, to] <- input, do: :digraph.add_edge(graph, from, to)
     graph
   end
 
   defp step(_graph, acc, _visited, []), do: acc
+
   defp step(graph, acc, visited, [node | free]) do
     visit_set = MapSet.put(visited, node)
-    new_neighbors = graph
-                    |> :digraph.out_neighbours(node)
-                    |> Enum.filter(fn v -> :digraph.in_neighbours(graph, v) |> MapSet.new |> MapSet.subset?(visit_set) end)
-    free_now = free ++ new_neighbors |> Enum.sort |> Enum.dedup
+
+    new_neighbors =
+      graph
+      |> :digraph.out_neighbours(node)
+      |> Enum.filter(fn v ->
+        :digraph.in_neighbours(graph, v) |> MapSet.new() |> MapSet.subset?(visit_set)
+      end)
+
+    free_now = (free ++ new_neighbors) |> Enum.sort() |> Enum.dedup()
     step(graph, acc <> node, visit_set, free_now)
   end
 
@@ -45,11 +52,14 @@ defmodule Day7 do
   """
   def order_instructions(input) do
     graph = map_instructions(input)
-    starting = graph
-               |> :digraph.vertices
-               |> Enum.filter(fn v -> :digraph.in_neighbours(graph, v) == [] end)
-               |> Enum.sort
-    step(graph, "", MapSet.new, starting)
+
+    starting =
+      graph
+      |> :digraph.vertices()
+      |> Enum.filter(fn v -> :digraph.in_neighbours(graph, v) == [] end)
+      |> Enum.sort()
+
+    step(graph, "", MapSet.new(), starting)
   end
 end
 
@@ -63,9 +73,7 @@ defmodule Day7Test do
   test "input to list" do
     input = input_to_list()
 
-    [["U", "A"],
-      ["F", "Z"],
-      ["B", "J"]] = Enum.take(input, 3)
+    [["U", "A"], ["F", "Z"], ["B", "J"]] = Enum.take(input, 3)
   end
 
   test "steps" do
@@ -76,7 +84,7 @@ defmodule Day7Test do
       ["B", "E"],
       ["C", "F"],
       ["C", "A"],
-      ["D", "E"],
+      ["D", "E"]
     ]
 
     "CABDFE" = order_instructions(input)

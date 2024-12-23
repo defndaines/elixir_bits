@@ -26,7 +26,7 @@ defmodule Tournament do
   Increase the tally for a given team's metric by one. If no metrics have been
   recorded yet for that team or that metric, it will be set to 1.
   """
-  @spec bump(records :: map(), team :: String.t(), metric :: atom()) :: map() 
+  @spec bump(records :: map(), team :: String.t(), metric :: atom()) :: map()
   defp bump(records, team, metric) do
     update_in(records, [Access.key(team, %{}), Access.key(metric, 0)], &(&1 + 1))
   end
@@ -37,15 +37,19 @@ defmodule Tournament do
         acc
         |> bump(team_1, :wins)
         |> bump(team_2, :losses)
+
       [team_1, team_2, "loss"] ->
         acc
         |> bump(team_1, :losses)
         |> bump(team_2, :wins)
+
       [team_1, team_2, "draw"] ->
         acc
         |> bump(team_1, :draws)
         |> bump(team_2, :draws)
-      _ -> acc
+
+      _ ->
+        acc
     end
   end
 
@@ -59,7 +63,7 @@ defmodule Tournament do
     {
       team,
       results
-      |> Map.put(:matches, Map.values(results) |> Enum.sum)
+      |> Map.put(:matches, Map.values(results) |> Enum.sum())
       |> Map.put(:points, Map.get(results, :wins, 0) * 3 + Map.get(results, :draws, 0))
     }
   end
@@ -74,6 +78,7 @@ defmodule Tournament do
         Map.get(results, :losses, 0),
         results.points
       ],
-      " |  ")
+      " |  "
+    )
   end
 end

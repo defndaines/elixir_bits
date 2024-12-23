@@ -1,5 +1,4 @@
 defmodule Garden do
-
   @students ~w(alice bob charlie david eve fred
                ginny harriet ileana joseph kincaid larry)a
 
@@ -14,15 +13,17 @@ defmodule Garden do
   @spec info(String.t(), list) :: map
   def info(info_string, student_names \\ @students) do
     veggies = rows(info_string)
-    pots = Enum.sort(student_names) |> Enum.zip(veggies) |> Map.new
-    Map.new(student_names, &({&1, {}})) |> Map.merge(pots)
+    pots = Enum.sort(student_names) |> Enum.zip(veggies) |> Map.new()
+    Map.new(student_names, &{&1, {}}) |> Map.merge(pots)
   end
 
   defp rows(info_string) do
-    [front, back] = String.split(info_string)
-                   |> Enum.map(&chunk_rows/1)
+    [front, back] =
+      String.split(info_string)
+      |> Enum.map(&chunk_rows/1)
+
     Enum.zip(front, back)
-    |> Enum.map(fn({[a, b], [c, d]}) -> {a, b, c, d} end)
+    |> Enum.map(fn {[a, b], [c, d]} -> {a, b, c, d} end)
   end
 
   defp chunk_rows(row) do

@@ -16,20 +16,24 @@ defmodule Change do
   @spec generate(integer, list) :: {:ok, map} | :error
   def generate(_amount, []), do: :error
   def generate(amount, [smallest | _]) when amount < smallest, do: :error
+
   def generate(amount, values) do
-    coins = Map.new(values, &({&1, 0}))
-    {_len, solution} = solution_tree(0, [], amount, values)
-                       |> List.flatten
-                       |> Enum.min_by(&(elem(&1, 0)))
+    coins = Map.new(values, &{&1, 0})
+
+    {_len, solution} =
+      solution_tree(0, [], amount, values)
+      |> List.flatten()
+      |> Enum.min_by(&elem(&1, 0))
+
     {:ok, Map.merge(coins, Map.new(solution))}
   end
 
   defp solution_tree(coins, path, 0, _), do: {coins, path}
+
   defp solution_tree(coins, path, amount, values) do
     for coin <- values, coin <= amount do
       num = div(amount, coin)
       solution_tree(coins + num, [{coin, num} | path], rem(amount, coin), values)
     end
   end
-
 end

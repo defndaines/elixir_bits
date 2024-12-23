@@ -17,6 +17,7 @@ defmodule Day1 do
   """
   def input_to_list() do
     {:ok, input} = File.read("input")
+
     input
     |> String.split("\n", trim: true)
     |> Enum.map(&String.to_integer/1)
@@ -46,8 +47,10 @@ defmodule Day1 do
   def first_repeat([], acc, seen, base) do
     first_repeat(base, acc, seen, base)
   end
+
   def first_repeat([head | tail], acc, seen, base) do
     freq = head + acc
+
     case Map.get(seen, freq) do
       nil -> first_repeat(tail, freq, Map.put(seen, freq, 1), base)
       _ -> freq

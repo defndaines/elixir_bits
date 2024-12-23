@@ -16,8 +16,9 @@ defmodule Day6 do
   """
   def input_to_list() do
     {:ok, input} = File.read("input")
+
     String.split(input, "\n", trim: true)
-    |> Enum.map(fn line -> Regex.run(@line_regex, line, [capture: :all_but_first]) end)
+    |> Enum.map(fn line -> Regex.run(@line_regex, line, capture: :all_but_first) end)
     |> Enum.map(fn [x, y] -> {String.to_integer(x), String.to_integer(y)} end)
   end
 
@@ -36,9 +37,12 @@ defmodule Day6 do
   end
 
   def closest_points(point, list) do
-    dists = Enum.map(list, fn coord -> {coord, manhattan_distance(point, coord)} end)
-            |> Enum.sort(fn {_, dist_1}, {_, dist_2} -> dist_1 <= dist_2 end)
+    dists =
+      Enum.map(list, fn coord -> {coord, manhattan_distance(point, coord)} end)
+      |> Enum.sort(fn {_, dist_1}, {_, dist_2} -> dist_1 <= dist_2 end)
+
     {_, closest} = Enum.at(dists, 0)
+
     Enum.take_while(dists, fn {_, dist} -> closest == dist end)
     |> Enum.map(fn {coord, _} -> coord end)
   end
@@ -46,19 +50,21 @@ defmodule Day6 do
   def map_closest_coord(input) do
     {{min_x, min_y}, {max_x, max_y}} = bounds(input)
     all_keys = for x <- min_x..max_x, y <- min_y..max_y, do: {x, y}
-    Enum.reduce(all_keys, %{},
-      fn e, acc -> case closest_points(e, input) do
+
+    Enum.reduce(all_keys, %{}, fn e, acc ->
+      case closest_points(e, input) do
         [point] -> Map.put(acc, e, point)
         _ -> acc
-          end
-      end)
+      end
+    end)
   end
 
   defp frequencies(list) do
-    Enum.reduce(list, %{}, fn e, acc -> case e do
-      nil -> acc
-      point -> Map.put(acc, point, Map.get(acc, point, 0) + 1)
-    end
+    Enum.reduce(list, %{}, fn e, acc ->
+      case e do
+        nil -> acc
+        point -> Map.put(acc, point, Map.get(acc, point, 0) + 1)
+      end
     end)
   end
 
@@ -68,7 +74,7 @@ defmodule Day6 do
     right = for y <- min_y..max_y, do: Map.get(closest, {max_x, y})
     top = for x <- min_x..max_x, do: Map.get(closest, {x, max_y})
     bottom = for x <- min_x..max_x, do: Map.get(closest, {x, min_y})
-    Enum.uniq(left ++ right ++ top ++ bottom) |> Enum.filter(&(&1))
+    Enum.uniq(left ++ right ++ top ++ bottom) |> Enum.filter(& &1)
   end
 
   @doc """
@@ -81,18 +87,19 @@ defmodule Day6 do
     closest = map_closest_coord(coords)
     boundaries = border_points(coords, closest)
 
-    {_, size} = Map.values(closest)
-                |> Enum.filter(fn point -> Enum.find(boundaries, &(&1 == point)) == nil end)
-                |> frequencies
-                |> Enum.sort(fn {_, count_1}, {_, count_2} -> count_1 >= count_2 end)
-                |> Enum.at(0)
+    {_, size} =
+      Map.values(closest)
+      |> Enum.filter(fn point -> Enum.find(boundaries, &(&1 == point)) == nil end)
+      |> frequencies
+      |> Enum.sort(fn {_, count_1}, {_, count_2} -> count_1 >= count_2 end)
+      |> Enum.at(0)
 
     size
   end
 
   def distance_to_all_points(point, coords) do
     Enum.map(coords, fn coord -> manhattan_distance(point, coord) end)
-    |> Enum.sum
+    |> Enum.sum()
   end
 
   @doc """
@@ -105,10 +112,10 @@ defmodule Day6 do
     {{min_x, min_y}, {max_x, max_y}} = bounds(coords)
     all_points = for x <- min_x..max_x, y <- min_y..max_y, do: {x, y}
 
-    Enum.map(all_points, &(Task.async(fn -> {&1, distance_to_all_points(&1, coords)} end)))
+    Enum.map(all_points, &Task.async(fn -> {&1, distance_to_all_points(&1, coords)} end))
     |> Enum.map(&Task.await/1)
     |> Enum.filter(fn {_, dist} -> dist < 10000 end)
-    |> Kernel.length
+    |> Kernel.length()
   end
 end
 
@@ -121,9 +128,7 @@ defmodule Day6Test do
 
   test "input to list" do
     coords = input_to_list()
-    [ {227, 133},
-      {140, 168},
-      {99, 112}] = Enum.take(coords, 3)
+    [{227, 133}, {140, 168}, {99, 112}] = Enum.take(coords, 3)
     assert 50 == length(coords)
   end
 
@@ -136,7 +141,7 @@ defmodule Day6Test do
     coords = [{1, 1}, {1, 6}, {8, 3}, {3, 4}, {5, 5}, {8, 9}]
 
     # Identity
-    [{1, 1}] = closest_points({1, 1}, coords) 
+    [{1, 1}] = closest_points({1, 1}, coords)
 
     # By distance
     [{5, 5}] = closest_points({5, 8}, coords)
@@ -158,7 +163,7 @@ defmodule Day6Test do
   end
 
   test "part one" do
-    result = largest_non_infinite_area() 
+    result = largest_non_infinite_area()
     IO.puts(result)
   end
 

@@ -7,6 +7,7 @@ defmodule Strain do
   """
   @spec keep(list :: list(any), fun :: (any -> boolean)) :: list(any)
   def keep([], _fun), do: []
+
   def keep(list, fun) do
     for e <- list, fun.(e), do: e
   end
@@ -19,6 +20,7 @@ defmodule Strain do
   """
   @spec discard(list :: list(any), fun :: (any -> boolean)) :: list(any)
   def discard([], fun), do: []
+
   def discard(list, fun) do
     for e <- list, !fun.(e), do: e
   end

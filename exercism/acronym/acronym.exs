@@ -8,6 +8,6 @@ defmodule Acronym do
     string
     |> String.split(~r/([[:space:]]|[[:punct:]]|[[:lower:]](?=[[:upper:]]))+/)
     |> Enum.map_join(&String.first/1)
-    |> String.upcase
+    |> String.upcase()
   end
 end

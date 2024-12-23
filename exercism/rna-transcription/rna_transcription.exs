@@ -9,12 +9,12 @@ defmodule RNATranscription do
   """
   @spec to_rna([char]) :: [char]
   def to_rna(dna) do
-    do_rna(dna, '')
+    do_rna(dna, ~c"")
   end
 
-  defp do_rna('', acc), do: acc
-  defp do_rna('G' ++ tail, acc), do: do_rna(tail, acc ++ 'C')
-  defp do_rna('C' ++ tail, acc), do: do_rna(tail, acc ++ 'G')
-  defp do_rna('T' ++ tail, acc), do: do_rna(tail, acc ++ 'A')
-  defp do_rna('A' ++ tail, acc), do: do_rna(tail, acc ++ 'U')
+  defp do_rna(~c"", acc), do: acc
+  defp do_rna(~c"G" ++ tail, acc), do: do_rna(tail, acc ++ ~c"C")
+  defp do_rna(~c"C" ++ tail, acc), do: do_rna(tail, acc ++ ~c"G")
+  defp do_rna(~c"T" ++ tail, acc), do: do_rna(tail, acc ++ ~c"A")
+  defp do_rna(~c"A" ++ tail, acc), do: do_rna(tail, acc ++ ~c"U")
 end

@@ -12,13 +12,13 @@ defmodule DNA do
   def decode_nucleotide(0b1000), do: ?T
 
   def encode(dna, acc \\ "")
-  def encode('', acc), do: acc
+  def encode(~c"", acc), do: acc
 
   def encode([base | rest], acc) do
     encode(rest, <<acc::bitstring, encode_nucleotide(base)::4>>)
   end
 
-  def decode(dna, acc \\ '')
+  def decode(dna, acc \\ ~c"")
   def decode("", acc), do: acc
 
   def decode(<<base::4, rest::bitstring>>, acc) do

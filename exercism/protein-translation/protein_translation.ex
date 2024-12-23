@@ -28,6 +28,7 @@ defmodule ProteinTranslation do
   end
 
   defp do_rna("", acc), do: {:ok, acc}
+
   defp do_rna(<<a, b, c, rest::binary>>, acc) do
     case of_codon(<<a, b, c>>) do
       {:ok, "STOP"} -> {:ok, acc}
