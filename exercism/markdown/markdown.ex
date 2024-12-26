@@ -1,4 +1,6 @@
 defmodule Markdown do
+  @moduledoc false
+
   @doc """
     Parses a given string with Markdown syntax and returns the associated HTML for that string.
 
@@ -14,13 +16,12 @@ defmodule Markdown do
   def parse(text) do
     text
     |> String.split("\n")
-    |> Enum.map(&process/1)
-    |> Enum.join()
+    |> Enum.map_join("", &process/1)
     |> ensure_ul()
   end
 
-  defp process(line = <<?#, _::binary>>), do: parse_header(line)
-  defp process(line = <<?*, _::binary>>), do: parse_list_item(line)
+  defp process(<<?#, _::binary>> = line), do: parse_header(line)
+  defp process(<<?*, _::binary>> = line), do: parse_list_item(line)
   defp process(line), do: parse_paragraph(line)
 
   defp parse_header(line) do
@@ -40,8 +41,7 @@ defmodule Markdown do
   defp parse_highlight_tags(line) do
     line
     |> String.split()
-    |> Enum.map(&parse_strong_and_em/1)
-    |> Enum.join(" ")
+    |> Enum.map_join(" ", &parse_strong_and_em/1)
   end
 
   defp parse_strong_and_em(word) do

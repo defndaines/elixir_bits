@@ -1,4 +1,6 @@
 defmodule Forth do
+  @moduledoc false
+
   @opaque word :: integer | String.t()
   @opaque actions :: %{name: String.t(), action: Function.t()}
   @opaque stack :: [word]
@@ -10,7 +12,7 @@ defmodule Forth do
   Create a new evaluator.
   """
   @spec new() :: evaluator
-  def new() do
+  def new do
     {
       [],
       %{
@@ -122,7 +124,7 @@ defmodule Forth do
   defp multiply([n, m | rest]), do: [m * n | rest]
   defp multiply(_), do: raise(Forth.StackUnderflow)
 
-  defp over(stack = [_, m | _]), do: [m | stack]
+  defp over([_, m | _] = stack), do: [m | stack]
   defp over(_), do: raise(Forth.StackUnderflow)
 
   defp subtract([n, m | rest]), do: [m - n | rest]
