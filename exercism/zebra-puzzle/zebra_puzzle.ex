@@ -1,38 +1,47 @@
 defmodule ZebraPuzzle do
   @objects %{
-    color: MapSet.new([:blue, :green, :ivory, :red, :yellow]),
-    drink: MapSet.new([:water, :coffee, :tea, :orange_juice, :milk]),
-    hobby: MapSet.new([:painting, :football, :reading, :dancing, :chess]),
-    nationality: MapSet.new([:english, :japanese, :norwegian, :spanish, :ukrainian]),
-    pet: MapSet.new([:dog, :snail, :horse, :fox, :zebra]),
-    position: MapSet.new([1, 2, 3, 4, 5])
+    color: [:blue, :green, :ivory, :red, :yellow],
+    drink: [:water, :coffee, :tea, :orange_juice, :milk],
+    hobby: [:painting, :football, :reading, :dancing, :chess],
+    nationality: [:english, :japanese, :norwegian, :spanish, :ukrainian],
+    pet: [:dog, :snail, :horse, :fox, :zebra],
+    position: [1, 2, 3, 4, 5]
   }
+
+  # ANSWER
+  # [position: 1, color: :yellow, drink: :water, nationality: :norwegian, pet: (:fox | :zebra), hobby: :painting]
+  # [position: 2, color: :blue, drink: (:orange_juice | :tea), nationality: (:japanese | :ukrainian), pet: :horse, hobby: ?]
+  # [position: 3, color: :red, drink: :milk, nationality: ?, pet: ?, hobby: ?]
+  # [position: 4, color: :ivory, drink: ?, nationality: ?, pet: ?, hobby: ?]
+  # [position: 5, color: :green, drink: ?, nationality: ?, pet: ?, hobby: ?]
 
   @doc """
   Determine who drinks the water
   """
   @spec drinks_water() :: atom
-  def drinks_water(), do: get_in(puzzle(), [:truths, :drink, :nationality, :water])
+  def drinks_water(), do: puzzle() |> get_in([:drink, :water, :nationality]) |> Enum.at(0)
 
   @doc """
   Determine who owns the zebra
   """
   @spec owns_zebra() :: atom
   def owns_zebra() do
-    # knowledge = puzzle()
+    knowledge = puzzle()
     # print(knowledge)
-    get_in(puzzle(), [:truths, :pet, :nationality, :zebra])
+
+    case get_in(knowledge, [:pet, :zebra, :nationality]) do
+      [answer] -> answer
+      oops -> oops
+    end
+
+    # puzzle() |> get_in([:pet, :zebra, :nationality]) |> Enum.at(0)
   end
 
   defp build_knowledge(objects) do
     keys = Map.keys(objects)
-    init = %{truths: %{}, falsehoods: %{}}
 
-    for x <- keys, y <- keys, x != y, obj <- objects[x], reduce: init do
-      acc ->
-        acc
-        |> put_in(Enum.map([:truths, x, y, obj], &Access.key(&1, %{})), nil)
-        |> put_in(Enum.map([:falsehoods, x, y, obj], &Access.key(&1, %{})), MapSet.new())
+    for x <- keys, obj <- objects[x], y <- keys, x != y, reduce: %{} do
+      acc -> put_in(acc, Enum.map([x, obj, y], &Access.key(&1, %{})), objects[y])
     end
   end
 
@@ -50,8 +59,8 @@ defmodule ZebraPuzzle do
       # 5. The Ukrainian drinks tea.
       |> assert(objects, drink: :tea, nationality: :ukrainian)
       # 6. The green house is immediately to the right of the ivory house.
-      |> refute(color: :green, position: 1)
-      |> refute(color: :ivory, position: 5)
+      |> refute!(objects, color: :green, position: 1)
+      |> refute!(objects, color: :ivory, position: 5)
       # 7. The snail owner likes to go dancing.
       |> assert(objects, hobby: :dancing, pet: :snail)
       # 8. The person in the yellow house is a painter.
@@ -61,15 +70,15 @@ defmodule ZebraPuzzle do
       # 10. The Norwegian lives in the first house.
       |> assert(objects, nationality: :norwegian, position: 1)
       # 11. The person who enjoys reading lives in the house next to the person with the fox.
-      |> refute(hobby: :reading, pet: :fox)
+      |> refute!(objects, hobby: :reading, pet: :fox)
       # 12. The painter's house is next to the house with the horse.
-      |> refute(hobby: :painting, pet: :horse)
+      |> refute!(objects, hobby: :painting, pet: :horse)
       # 13. The person who plays football drinks orange juice.
       |> assert(objects, drink: :orange_juice, hobby: :football)
       # 14. The Japanese person plays chess.
       |> assert(objects, hobby: :chess, nationality: :japanese)
       # 15. The Norwegian lives next to the blue house.
-      |> refute(color: :blue, nationality: :norwegian)
+      |> refute!(objects, color: :blue, nationality: :norwegian)
 
     next_to = fn a, b -> a == b + 1 or a + 1 == b end
 
@@ -92,143 +101,165 @@ defmodule ZebraPuzzle do
 
     propagate(knowledge, @objects, constraints)
 
-    # This is necessary for first question
     # TODO: What happens next and what's missing to achieve second test?
+    #   Might have to take a guessing strategy next, proposing a new fact and see if it fails.
+    #   If guessing, best to choose from something that only has two choices left and has a
+    #   constraint.
   end
 
   defp assert(knowledge, objects, [{x, x_val}, {y, y_val}]) do
-    not_x = MapSet.difference(objects[x], MapSet.new([x_val]))
-    not_y = MapSet.difference(objects[y], MapSet.new([y_val]))
+    not_x = List.delete(objects[x], x_val)
+    not_y = List.delete(objects[y], y_val)
 
     knowledge =
       Enum.reduce(not_x, knowledge, fn z_val, acc ->
-        update_in(acc, [:falsehoods, x, y, z_val], &MapSet.put(&1, y_val))
+        refute!(acc, objects, [{x, z_val}, {y, y_val}])
       end)
 
     knowledge =
       Enum.reduce(not_y, knowledge, fn z_val, acc ->
-        update_in(acc, [:falsehoods, y, x, z_val], &MapSet.put(&1, x_val))
+        refute!(acc, objects, [{y, z_val}, {x, x_val}])
       end)
 
-    knowledge
-    |> put_or_raise([:truths, x, y, x_val], y_val)
-    |> put_or_raise([:truths, y, x, y_val], x_val)
-    |> put_in([:falsehoods, x, y, x_val], not_y)
-    |> put_in([:falsehoods, y, x, y_val], not_x)
-  end
+    knowledge =
+      for y_val <- not_y, reduce: knowledge do
+        acc -> refute!(acc, objects, [{x, x_val}, {y, y_val}])
+      end
 
-  defp put_or_raise(knowledge, path, value) do
-    old = get_in(knowledge, path)
-
-    if old && old != value do
-      raise("Attempting to replace #{old} with #{value} in #{inspect(path)}")
-    else
-      put_in(knowledge, path, value)
+    for x_val <- not_x, reduce: knowledge do
+      acc -> refute!(acc, objects, [{x, x_val}, {y, y_val}])
     end
   end
 
-  defp refute(knowledge, [{x, x_val}, {y, y_val}]) do
-    knowledge
-    |> update_in([:falsehoods, x, y, x_val], &MapSet.put(&1, y_val))
-    |> update_in([:falsehoods, y, x, y_val], &MapSet.put(&1, x_val))
-  end
-
   defp propagate(knowledge, objects, constraints) do
-    with_constraints =
+    acc =
       Enum.reduce(constraints, knowledge, fn constraint, acc ->
         apply_constraint(acc, objects, constraint)
       end)
 
-    # if with_constraints != knowledge, do: IO.puts("CONSTRAINT CHANGE")
+    acc = cross_pollinate(acc, objects)
 
-    updated =
-      for {x, xs} <- objects, {y, _ys} <- objects, x != y, reduce: with_constraints do
-        acc -> acc |> last_choice(objects, x, y) |> apply_truths(objects, xs, x, y)
-      end
+    if acc == knowledge, do: knowledge, else: propagate(acc, objects, constraints)
+  end
 
-    # if updated != with_constraints, do: IO.puts("LAST CHOICE CHANGE")
-
-    if updated == knowledge do
-      knowledge
+  defp delete!(list, value) do
+    if (u = List.delete(list, value)) == [] do
+      raise("empty! #{inspect({list, value})}")
     else
-      # IO.puts("もう一回！")
-      propagate(updated, objects, constraints)
+      u
     end
   end
 
-  defp last_choice(knowledge, objects, x, y) do
-    Enum.reduce(objects[y], knowledge, fn y_val, acc ->
-      falsehoods = get_in(acc, [:falsehoods, x, y])
+  defp refute!(acc, objects, [{x, x_val}, {y, y_val}]) do
+    answered? = length(get_in(acc, [x, x_val, y])) == 1
 
-      case Enum.reject(falsehoods, fn {_, vs} -> Enum.member?(vs, y_val) end) do
-        [{x_val, _}] ->
-          if get_in(acc, [:truths, x, y, x_val]) do
-            acc
-          else
-            assert(acc, objects, [{x, x_val}, {y, y_val}])
+    acc =
+      acc
+      |> update_in([x, x_val, y], &delete!(&1, y_val))
+      |> update_in([y, y_val, x], &delete!(&1, x_val))
+
+    if not answered? do
+      case get_in(acc, [x, x_val, y]) do
+        [answer] -> assert(acc, objects, [{x, x_val}, {y, answer}])
+        _ -> acc
+      end
+    else
+      acc
+    end
+  end
+
+  # When two facts are mutually exclusive, remove them from the domain.
+  # {x1, y1} and {x2, z2}, so {y1, z2} is not possible.
+  defp cross_pollinate(knowledge, objects) do
+    keys = Map.keys(objects)
+
+    knowledge =
+      for x <- keys, y <- keys, x != y, x_val <- objects[x], reduce: knowledge do
+        acc ->
+          case get_in(acc, [x, x_val, y]) do
+            [y_val] ->
+              acc =
+                if [x_val] == get_in(acc, [y, y_val, x]) do
+                  acc
+                else
+                  assert(acc, objects, [{y, y_val}, {x, x_val}])
+                end
+
+              for z <- keys -- [x, y], not_x <- List.delete(objects[x], x_val), reduce: acc do
+                acc ->
+                  case get_in(acc, [x, not_x, z]) do
+                    [z_val] -> refute!(acc, objects, [{y, y_val}, {z, z_val}])
+                    _ -> acc
+                  end
+              end
+
+            _ ->
+              acc
           end
+      end
+
+    for y <- keys, x <- keys, y != x, y_val <- objects[y], reduce: knowledge do
+      acc ->
+        case get_in(acc, [y, y_val, x]) do
+          [x_val] ->
+            acc =
+              if [y_val] == get_in(acc, [x, x_val, y]) do
+                acc
+              else
+                assert(acc, objects, [{x, x_val}, {y, y_val}])
+              end
+
+            for z <- keys -- [y, x], not_y <- List.delete(objects[y], y_val), reduce: acc do
+              acc ->
+                case get_in(acc, [y, not_y, z]) do
+                  [z_val] -> refute!(acc, objects, [{x, x_val}, {z, z_val}])
+                  _ -> acc
+                end
+            end
+
+          _ ->
+            acc
+        end
+    end
+  end
+
+  defp apply_constraint(knowledge, objects, {[{x, x_val}, {y, y_val}], z, fun}) do
+    knowledge =
+      case get_in(knowledge, [x, x_val, z]) do
+        [z_val] ->
+          Enum.reduce(Enum.reject(objects[z], &fun.(z_val, &1)), knowledge, fn nope, acc ->
+            refute!(acc, objects, [{y, y_val}, {z, nope}])
+          end)
 
         _ ->
-          acc
+          knowledge
       end
-    end)
-  end
 
-  defp apply_truths(knowledge, objects, xs, x, y) do
-    Enum.reduce(xs, knowledge, fn x_val, acc ->
-      if y_val = get_in(acc, [:truths, x, y, x_val]) do
-        crosscheck = Map.keys(objects) -- [x, y]
-
-        Enum.reduce(crosscheck, acc, fn z, acc ->
-          Enum.reduce(get_in(acc, [:falsehoods, x, z, x_val]), acc, fn z_val, acc ->
-            if get_in(acc, [:truths, y, z, y_val]) do
-              acc
-            else
-              refute(acc, [{y, y_val}, {z, z_val}])
-            end
+    knowledge =
+      case get_in(knowledge, [y, y_val, z]) do
+        [z_val] ->
+          Enum.reduce(Enum.reject(objects[z], &fun.(z_val, &1)), knowledge, fn nope, acc ->
+            refute!(acc, objects, [{x, x_val}, {z, nope}])
           end)
-        end)
-      else
-        acc
-      end
-    end)
-  end
 
-  defp apply_constraint(knowledge, objects, constraint) do
-    {[{x, x_val}, {y, y_val}], z, fun} = constraint
-
-    knowledge =
-      if z_val = get_in(knowledge, [:truths, x, z, x_val]) do
-        Enum.reduce(Enum.reject(objects[z], &fun.(z_val, &1)), knowledge, fn no, acc ->
-          refute(acc, [{y, y_val}, {z, no}])
-        end)
-      else
-        knowledge
+        _ ->
+          knowledge
       end
 
-    knowledge =
-      if z_val = get_in(knowledge, [:truths, y, z, y_val]) do
-        Enum.reduce(Enum.reject(objects[z], &fun.(z_val, &1)), knowledge, fn no, acc ->
-          refute(acc, [{x, x_val}, {z, no}])
-        end)
-      else
-        knowledge
-      end
+    possible_xs = get_in(knowledge, [x, x_val, z])
+    possible_ys = get_in(knowledge, [y, y_val, z])
+    ys = for x1 <- possible_xs, y1 <- possible_ys, fun.(x1, y1), uniq: true, do: y1
 
-    z_vals = get_in(knowledge, [:falsehoods, x, z, x_val])
-    possibly_x = MapSet.difference(objects[z], z_vals)
-    possibly_y = MapSet.difference(objects[z], get_in(knowledge, [:falsehoods, y, z, y_val]))
-
-    ys =
-      for x1 <- possibly_x, y1 <- possibly_y, fun.(x1, y1), uniq: true, into: MapSet.new() do
-        y1
-      end
-
-    put_in(knowledge, [:falsehoods, y, z, y_val], MapSet.difference(objects[z], ys))
+    for z_val <- objects[z] -- ys, reduce: knowledge do
+      acc -> refute!(acc, objects, [{y, y_val}, {z, z_val}])
+    end
   end
 
   defp print(knowledge) do
-    for [a, b] <- combinations(2, Map.keys(@objects)) do
+    # keys = Map.keys(@objects)
+    keys = [:position, :color, :drink, :nationality, :pet, :hobby]
+
+    for [a, b] <- combinations(2, keys) do
       IO.puts("# #{a} x #{b} #")
 
       x_axis =
@@ -245,15 +276,17 @@ defmodule ZebraPuzzle do
 
       for {j, y} <- Enum.with_index(Enum.sort(@objects[b])) do
         line =
-          Enum.sort(@objects[a])
-          |> Enum.map(fn i ->
-            if get_in(knowledge, [:truths, b, a, j]) == i do
+          @objects[a]
+          |> Enum.sort()
+          |> Enum.map_join(" ", fn i ->
+            bjai = get_in(knowledge, [b, j, a])
+
+            if [i] == bjai do
               "O"
             else
-              if i in get_in(knowledge, [:falsehoods, b, a, j]), do: "X", else: " "
+              if i in bjai, do: " ", else: "X"
             end
           end)
-          |> Enum.join(" ")
 
         IO.puts("#{Enum.at(y_axis, y)} #{line}")
       end
