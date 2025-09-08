@@ -26,12 +26,7 @@ defmodule ZebraPuzzle do
   Determine who owns the zebra
   """
   @spec owns_zebra() :: atom
-  # def owns_zebra(), do: answer(puzzle(), [:pet, :zebra, :nationality])
-  def owns_zebra() do
-    domains = puzzle()
-    print(domains, @objects)
-    answer(domains, [:pet, :zebra, :nationality])
-  end
+  def owns_zebra(), do: answer(puzzle(), [:pet, :zebra, :nationality])
 
   def build_domains(objects) do
     keys = Map.keys(objects)
@@ -64,37 +59,35 @@ defmodule ZebraPuzzle do
 
   def propagate(domains, objects, constraints \\ []) do
     update = constraints |> Enum.reduce(domains, &apply_constraint/2) |> cross_pollinate(objects)
-
     if update == domains, do: domains, else: propagate(update, objects, constraints)
   end
 
   def print(domains, objects) do
-    # keys = Map.keys(objects)
-    keys = [:position, :color, :drink, :nationality, :pet, :hobby]
+    keys = Map.keys(objects)
 
-    for [a, b] <- combinations(2, keys) do
-      IO.puts("# #{a} x #{b} #")
+    for [x, y] <- combinations(2, keys) do
+      IO.puts("# #{x} x #{y} #")
 
       first_two = fn atom -> atom |> to_string() |> String.slice(0, 2) end
-      x_axis = objects |> Map.get(a) |> Enum.map(first_two) |> Enum.join(" ")
-      y_axis = objects |> Map.get(b) |> Enum.map(first_two)
+      x_axis = objects |> Map.get(x) |> Enum.map(first_two) |> Enum.join(" ")
+      y_axis = objects |> Map.get(y) |> Enum.map(first_two)
 
       IO.puts("   #{x_axis}")
 
-      for {j, y} <- Enum.with_index(objects[b]) do
+      for {b, i} <- Enum.with_index(objects[y]) do
         line =
-          objects[a]
-          |> Enum.map_join("  ", fn i ->
-            bjai = get_in(domains, [b, j, a])
+          objects[x]
+          |> Enum.map_join("  ", fn a ->
+            ybxa = get_in(domains, [y, b, x])
 
-            if [i] == bjai do
+            if [a] == ybxa do
               "O"
             else
-              if i in bjai, do: " ", else: "X"
+              if a in ybxa, do: " ", else: "X"
             end
           end)
 
-        IO.puts("#{Enum.at(y_axis, y)} #{line}")
+        IO.puts("#{Enum.at(y_axis, i)} #{line}")
       end
     end
   end
@@ -157,12 +150,8 @@ defmodule ZebraPuzzle do
 
   defp puzzle() do
     {domains, constraints} = zebra_constraints(@objects)
-    propagate(domains, @objects, constraints)
-
-    # TODO: What happens next and what's missing to achieve second test?
-    #   Might have to take a guessing strategy next, proposing a new fact and see if it fails.
-    #   If guessing, best to choose from something that only has two choices left and has a
-    #   constraint.
+    domains = propagate(domains, @objects, constraints)
+    guess(domains, @objects, constraints)
   end
 
   defp delete!(list, value) do
@@ -235,5 +224,31 @@ defmodule ZebraPuzzle do
 
   defp combinations(length, [h | t]) do
     for(xs <- combinations(length - 1, t), do: [h | xs]) ++ combinations(length, t)
+  end
+
+  def guess(domains, objects, constraints \\ []) do
+    if solved?(domains) do
+      domains
+    else
+      open =
+        for [x, y] <- combinations(2, Map.keys(objects)),
+            x_val <- objects[x],
+            y_vals = get_in(domains, [x, x_val, y]),
+            length(y_vals) > 1,
+            y_val <- y_vals do
+          [{x, x_val}, {y, y_val}]
+        end
+
+      do_guess(open, domains, objects, constraints)
+    end
+  end
+
+  defp do_guess([], _, _, _), do: raise("no solution from guessing")
+
+  defp do_guess([fact | rest], domains, objects, constraints) do
+    update = domains |> assert!(objects, fact) |> propagate(objects, constraints)
+    if solved?(update), do: update, else: do_guess(rest, domains, objects, constraints)
+  rescue
+    _ -> do_guess(rest, domains, objects, constraints)
   end
 end
