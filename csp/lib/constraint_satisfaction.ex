@@ -100,6 +100,29 @@ defmodule ConstraintSatisfaction do
   end
 
   @doc """
+  Evaluate `statements` where one is false that the rest are true, i.e., “two truths and a lie”.
+
+  On the premise that the innocent always tell the truth, while the guilty always lie, evaluate
+  the provided statements, flipping the assertion or refutation of one suspect to determine who is
+  lying. Only one combination should result in a solved problem. When found, return a tuple of the
+  guilty suspect along with the final domain state.
+  """
+  def evaluate_statements(state, objects, statements) do
+    Enum.reduce_while(statements, state, fn {suspect, _, lie}, acc ->
+      possibility =
+        Enum.reduce(statements, state, fn
+          {^suspect, :refute, _}, acc -> assert(acc, objects, lie)
+          {^suspect, :assert, _}, acc -> refute(acc, lie)
+          {_, :assert, fact}, acc -> assert(acc, objects, fact)
+          {_, :refute, fact}, acc -> refute(acc, fact)
+        end)
+        |> propagate(objects)
+
+      if solved?(possibility), do: {:halt, {suspect, possibility}}, else: {:cont, acc}
+    end)
+  end
+
+  @doc """
   Given the `state` and a `path` of `[x, x_value, y]`, return the value for `y` if it is
   solved. Otherwise, return an atom indicating the possible solutions.
   """

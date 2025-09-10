@@ -141,4 +141,37 @@ defmodule ConstraintSatisfactionTest do
     assert %{suspect: [:applegreen], location: [:chamber], motive: [:rob]} ==
              get_in(state, [:weapon, :squirrel])
   end
+
+  test "The Unfortunate-Demise-of-the-Art-Collector Murder (2025-09-10)" do
+    murdle = %{
+      suspect: [:viscount_eminence, :admiral_navy, :signor_emerald],
+      weapon: [:rare_vase, :murdle_vol_1, :glass_of_poisoned_wine],
+      location: [:bathroom, :entry_hall, :art_studio]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # A paper-detector gave a positive reading on Signor Emerald.
+      |> CSP.assert(murdle, suspect: :signor_emerald, weapon: :murdle_vol_1)
+      # The tallest suspect was in whatever-the-opposite-of-love-is with the person who brought a rare vase.
+      |> CSP.refute(suspect: :admiral_navy, weapon: :rare_vase)
+      |> CSP.propagate(murdle)
+
+    statements = [
+      # Viscount Eminence: A glass of poisoned wine was not in the entry hall.
+      {:viscount_eminence, :refute, weapon: :glass_of_poisoned_wine, location: :entry_hall},
+      # Admiral Navy: Viscount Eminence was in the entry hall.
+      {:admiral_navy, :assert, suspect: :viscount_eminence, location: :entry_hall},
+      # Signor Emerald: Viscount Eminence was not in an art studio.
+      {:signor_emerald, :refute, suspect: :viscount_eminence, location: :art_studio}
+    ]
+
+    {suspect, state} = CSP.evaluate_statements(state, murdle, statements)
+
+    assert :admiral_navy == suspect
+
+    assert %{location: [:art_studio], weapon: [:glass_of_poisoned_wine]} ==
+             get_in(state, [:suspect, suspect])
+  end
 end
