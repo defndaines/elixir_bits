@@ -174,4 +174,45 @@ defmodule ConstraintSatisfactionTest do
     assert %{location: [:art_studio], weapon: [:glass_of_poisoned_wine]} ==
              get_in(state, [:suspect, suspect])
   end
+
+  test "Deductive Logico and the Case of the Virgo with the Leather Luggage (2025-09-11)" do
+    murdle = %{
+      suspect: [:babyface_blue, :lord_lavender, :captain_slate, :sir_rulean],
+      location: [:sleeping_car, :observation_deck, :caboose, :dining_car],
+      weapon: [
+        :brick_of_coal,
+        :rolled_up_newspaper_with_a_crowbar_inside,
+        :leather_luggage,
+        :bottle_of_wine
+      ]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # Whoever was in the dining car had blue eyes.
+      |> CSP.refute(suspect: :lord_lavender, location: :dining_car)
+      |> CSP.refute(suspect: :captain_slate, location: :dining_car)
+      # The second shortest suspect did not bring a bottle of wine.
+      |> CSP.refute(suspect: :sir_rulean, weapon: :bottle_of_wine)
+      # This fingerprint was found on a rolled-up newspaper with a crowbar inside.
+      |> CSP.assert(murdle,
+        suspect: :babyface_blue,
+        weapon: :rolled_up_newspaper_with_a_crowbar_inside
+      )
+      # Leather luggage was brought by a member of The Order of the Wand, and only Virgos are allowed to join the The Order of the Wand.
+      |> CSP.assert(murdle, suspect: :lord_lavender, weapon: :leather_luggage)
+      # Traces of a weapon made of metal were found in the sleeping car.
+      |> CSP.refute(weapon: :brick_of_coal, location: :sleeping_car)
+      |> CSP.refute(weapon: :bottle_of_wine, location: :sleeping_car)
+      # Either Sir Rulean was in the back of the train or Lord Lavender brought a bottle of wine. (But not both!)
+      |> CSP.mutually_exclusive(murdle, [
+        [suspect: :sir_rulean, location: :caboose],
+        [suspect: :lord_lavender, weapon: :bottle_of_wine]
+      ])
+
+    # The murder took place by an outdoor railing.
+    assert %{suspect: [:captain_slate], weapon: [:bottle_of_wine]} ==
+             get_in(state, [:location, :observation_deck])
+  end
 end

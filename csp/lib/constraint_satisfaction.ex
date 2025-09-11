@@ -123,6 +123,22 @@ defmodule ConstraintSatisfaction do
   end
 
   @doc """
+  Evaluate two mutually exclusive `facts`, returning a `state` updated to account for whichever of
+  the two "facts" is actually true.
+  """
+  def mutually_exclusive(state, objects, facts) do
+    [fact_1, fact_2] = facts
+
+    possibility = state |> assert(objects, fact_1) |> refute(fact_2) |> propagate(objects)
+
+    if solved?(possibility) do
+      possibility
+    else
+      state |> refute(fact_1) |> assert(objects, fact_2) |> propagate(objects)
+    end
+  end
+
+  @doc """
   Given the `state` and a `path` of `[x, x_value, y]`, return the value for `y` if it is
   solved. Otherwise, return an atom indicating the possible solutions.
   """
@@ -276,7 +292,10 @@ defmodule ConstraintSatisfaction do
     end
   end
 
-  defp solved?(state) do
+  @doc """
+  Check if the `state` represents a solved problem.
+  """
+  def solved?(state) do
     Enum.all?(
       for x <- Map.keys(state),
           x_val <- Map.keys(state[x]),
