@@ -77,7 +77,17 @@ defmodule ConstraintSatisfaction do
   location.
 
       refute(state, motive: :rob, location: :forest)
+
+  Multiple values are supported when passed in the final position.
   """
+  def refute(state, [{x, x_val}, {y, y_vals}]) when is_list(y_vals) do
+    Enum.reduce(y_vals, state, fn y_val, acc ->
+      acc
+      |> update_in([x, x_val, y], &List.delete(&1, y_val))
+      |> update_in([y, y_val, x], &List.delete(&1, x_val))
+    end)
+  end
+
   def refute(state, [{x, x_val}, {y, y_val}]) do
     state
     |> update_in([x, x_val, y], &List.delete(&1, y_val))

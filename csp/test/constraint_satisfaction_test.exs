@@ -191,8 +191,7 @@ defmodule ConstraintSatisfactionTest do
       murdle
       |> CSP.build_state()
       # Whoever was in the dining car had blue eyes.
-      |> CSP.refute(suspect: :lord_lavender, location: :dining_car)
-      |> CSP.refute(suspect: :captain_slate, location: :dining_car)
+      |> CSP.refute(location: :dining_car, suspect: [:lord_lavender, :captain_slate])
       # The second shortest suspect did not bring a bottle of wine.
       |> CSP.refute(suspect: :sir_rulean, weapon: :bottle_of_wine)
       # This fingerprint was found on a rolled-up newspaper with a crowbar inside.
@@ -203,8 +202,7 @@ defmodule ConstraintSatisfactionTest do
       # Leather luggage was brought by a member of The Order of the Wand, and only Virgos are allowed to join the The Order of the Wand.
       |> CSP.assert(murdle, suspect: :lord_lavender, weapon: :leather_luggage)
       # Traces of a weapon made of metal were found in the sleeping car.
-      |> CSP.refute(weapon: :brick_of_coal, location: :sleeping_car)
-      |> CSP.refute(weapon: :bottle_of_wine, location: :sleeping_car)
+      |> CSP.refute(location: :sleeping_car, weapon: [:brick_of_coal, :bottle_of_wine])
       # Either Sir Rulean was in the back of the train or Lord Lavender brought a bottle of wine. (But not both!)
       |> CSP.mutually_exclusive(murdle, [
         [suspect: :sir_rulean, location: :caboose],
@@ -214,5 +212,43 @@ defmodule ConstraintSatisfactionTest do
     # The murder took place by an outdoor railing.
     assert %{suspect: [:captain_slate], weapon: [:bottle_of_wine]} ==
              get_in(state, [:location, :observation_deck])
+  end
+
+  test "The Mystery of the Body beneath a Stained Glass Window (2025-09-12)" do
+    murdle = %{
+      suspect: [:judge_pine, :uncle_midnight, :father_mango, :baron_maroon, :mayor_honey],
+      location: [:chapel, :town_square, :manor_house, :quaint_garden, :new_development],
+      weapon: [:bottle_of_cyanide, :yarn, :pair_of_gardening_shears, :human_skull, :chessboard]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # Analysts discovered traces of a weapon made of metal on the clothing of Father Mango.
+      |> CSP.assert(murdle, weapon: :pair_of_gardening_shears, suspect: :father_mango)
+      # The second shortest suspect was seen hanging around beneath an enormous painting.
+      |> CSP.assert(murdle, suspect: :uncle_midnight, location: :manor_house)
+      # A pair of gardening shears was not in the quaint garden.
+      |> CSP.refute(weapon: :pair_of_gardening_shears, location: :quaint_garden)
+      # Uncle Midnight was childhood friends with the person who brought a human skull.
+      |> CSP.refute(suspect: :uncle_midnight, weapon: :human_skull)
+      # The remains of a human head was seen indoors.
+      |> CSP.refute(
+        weapon: :human_skull,
+        location: [:town_square, :quaint_garden, :new_development]
+      )
+      # The suspect at the new development had black hair.
+      |> CSP.assert(murdle, suspect: :judge_pine, location: :new_development)
+      # This fingerprint was found on a bottle of cyanide.
+      |> CSP.assert(murdle, suspect: :judge_pine, weapon: :bottle_of_cyanide)
+      # Either Mayor Honey brought yarn or Judge Pine was in the town square. (But not both!)
+      |> CSP.mutually_exclusive(murdle, [
+        [suspect: :mayor_honey, weapon: :yarn],
+        [suspect: :judge_pine, location: :town_square]
+      ])
+
+    # The body was found in the chapel.
+    assert %{suspect: [:baron_maroon], weapon: [:human_skull]} ==
+             get_in(state, [:location, :chapel])
   end
 end
