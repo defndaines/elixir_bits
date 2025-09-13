@@ -251,4 +251,49 @@ defmodule ConstraintSatisfactionTest do
     assert %{suspect: [:baron_maroon], weapon: [:human_skull]} ==
              get_in(state, [:location, :chapel])
   end
+
+  test "The Case of the Unfortunate Demise of the One of the Locals (2025-09-13)" do
+    murdle = %{
+      suspect: [:earl_grey, :dr_crimson, :secretary_celadon, :general_coffee],
+      weapon: [:snowglobe, :climbing_rope, :murdle_vol_1, :stone_dagger],
+      location: [:trailhead, :gift_shop, :five_star_hotel, :boutique_hotel],
+      motive: [:win_an_argument, :escape_blackmail, :rage_with_jealousy, :silence_a_witness]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # Dr Crimson wanted to rage with jealousy.
+      |> CSP.assert(murdle, suspect: :dr_crimson, motive: :rage_with_jealousy)
+      # Secretary Celadon was seen outdoors.
+      |> CSP.assert(murdle, suspect: :secretary_celadon, location: :trailhead)
+      # The person with a stone dagger wanted to silence a witness.
+      |> CSP.assert(murdle, weapon: :stone_dagger, motive: :silence_a_witness)
+      # This fingerprint was found on Murdle: Volume 1.
+      |> CSP.assert(murdle, suspect: :general_coffee, weapon: :murdle_vol_1)
+      # Earl Grey hated the person who brought climbing rope.
+      |> CSP.refute(suspect: :earl_grey, weapon: :climbing_rope)
+      # Forensics determined a weapon made at least partially out of glass was present at the boutique hotel.
+      |> CSP.assert(murdle, weapon: :snowglobe, location: :boutique_hotel)
+      # The person who wanted to escape blackmail was in the gift shop.
+      |> CSP.assert(murdle, motive: :escape_blackmail, location: :gift_shop)
+
+    statements = [
+      # Earl Grey: A snowglobe was at the boutique hotel.
+      {:eary_grey, :assert, weapon: :snowglobe, location: :boutique_hotel},
+      # Dr. Crimson: I did not bring a stone dagger.
+      {:dr_crimson, :refute, suspect: :dr_crimson, weapon: :stone_dagger},
+      # Secretary Celadon: Dr. Crimson was not in the gift shop.
+      {:secretary_celadon, :refute, suspect: :dr_crimson, location: :gift_shop},
+      # General Coffee: Argh... Dr. Crimson brought climbing rope.
+      {:general_coffee, :assert, suspect: :dr_crimson, weapon: :climbing_rope}
+    ]
+
+    {suspect, state} = CSP.evaluate_statements(state, murdle, statements)
+
+    assert :general_coffee == suspect
+
+    assert %{weapon: [:murdle_vol_1], location: [:gift_shop], motive: [:escape_blackmail]} ==
+             get_in(state, [:suspect, suspect])
+  end
 end
