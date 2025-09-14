@@ -296,4 +296,71 @@ defmodule ConstraintSatisfactionTest do
     assert %{weapon: [:murdle_vol_1], location: [:gift_shop], motive: [:escape_blackmail]} ==
              get_in(state, [:suspect, suspect])
   end
+
+  test "Deductive Logico Cracks the Case of Exploding Cufflinks (2025-09-14)" do
+    murdle = %{
+      suspect: [
+        :mx_tangerine,
+        :principal_applegreen,
+        :admiral_navy,
+        :captain_slate,
+        :baron_maroon,
+        :general_coffee
+      ],
+      weapon: [
+        :bottle_of_cabernet_toilet_wine,
+        :pair_of_literal_golden_handcuffs,
+        :rope_of_designer_clothes,
+        :exploding_cufflinks,
+        :diamond_encrusted_skeleton_key,
+        :heavy_codebook
+      ],
+      location: [
+        :movie_theater,
+        :private_suite,
+        :guard_tower,
+        :spa,
+        :tennis_court,
+        :michelin_starred_cafeteria
+      ]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # A loose diamond was found next to a King-sized bed.
+      |> CSP.assert(murdle, weapon: :diamond_encrusted_skeleton_key, location: :private_suite)
+      # This fingerprint was found in the guard tower.
+      |> CSP.assert(murdle, suspect: :mx_tangerine, location: :guard_tower)
+      # The tallest suspect had a light-weight weapon.
+      |> CSP.refute(
+        suspect: :baron_maroon,
+        weapon: [
+          :bottle_of_cabernet_toilet_wine,
+          :pair_of_literal_golden_handcuffs,
+          :rope_of_designer_clothes,
+          :heavy_codebook
+        ]
+      )
+      # Admiral Navy had a bottle of cabernet toilet wine.
+      |> CSP.assert(murdle, suspect: :admiral_navy, weapon: :bottle_of_cabernet_toilet_wine)
+      # A page with a cipher on it was found next to a net.
+      |> CSP.assert(murdle, weapon: :heavy_codebook, location: :tennis_court)
+      # The other suspect with the same height as Mx. Tangerine had a rope of designer clothes.
+      |> CSP.assert(murdle, suspect: :captain_slate, weapon: :rope_of_designer_clothes)
+      # Baron Maroon was seen hanging around beneath the cushions of a velvet seat. (Decode.)
+      |> CSP.assert(murdle, suspect: :baron_maroon, location: :movie_theater)
+      # Admiral Navy had not been in the spa.
+      |> CSP.refute(suspect: :admiral_navy, location: :spa)
+      # Principal Applegreen was seen with a diamond-encrusted skeleton key.
+      |> CSP.assert(murdle,
+        suspect: :principal_applegreen,
+        weapon: :diamond_encrusted_skeleton_key
+      )
+      |> CSP.propagate(murdle)
+
+    # A single cufflink was found beside Inspector Irratino.
+    assert %{location: [:movie_theater], suspect: [:baron_maroon]} ==
+             get_in(state, [:weapon, :exploding_cufflinks])
+  end
 end
