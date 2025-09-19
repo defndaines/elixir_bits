@@ -7,11 +7,11 @@ defmodule ConstraintSatisfactionTest do
     setup :puzzle
 
     # answer = [
-    #   [position: 1, color: :yellow, drink: :water, nationality: :norwegian, pet: :fox, hobby: :painting],
-    #   [position: 2, color: :blue, drink: :tea, nationality: :ukrainian, pet: :horse, hobby: :reading],
-    #   [position: 3, color: :red, drink: :milk, nationality: :english, pet: :snail, hobby: :dancing],
-    #   [position: 4, color: :ivory, drink: :orange_juice, nationality: :spanish, pet: :dog, hobby: :football],
-    #   [position: 5, color: :green, drink: :coffee, nationality: :japanese, pet: :zebra, hobby: :chess]
+    # [position: 1, color: :yellow, drink: :water, nationality: :norwegian, pet: :fox, hobby: :painting],
+    # [position: 2, color: :blue, drink: :tea, nationality: :ukrainian, pet: :horse, hobby: :reading],
+    # [position: 3, color: :red, drink: :milk, nationality: :english, pet: :snail, hobby: :dancing],
+    # [position: 4, color: :ivory, drink: :orange_juice, nationality: :spanish, pet: :dog, hobby: :football],
+    # [position: 5, color: :green, drink: :coffee, nationality: :japanese, pet: :zebra, hobby: :chess]
     # ]
 
     test "resident who drinks water", %{puzzle: puzzle} do
@@ -362,5 +362,184 @@ defmodule ConstraintSatisfactionTest do
     # A single cufflink was found beside Inspector Irratino.
     assert %{location: [:movie_theater], suspect: [:baron_maroon]} ==
              get_in(state, [:weapon, :exploding_cufflinks])
+  end
+
+  test "Deductive Logico Cracks the Case of the Murder amongst Thick Vines (2025-09-15)" do
+    murdle = %{
+      suspect: [:dr_crimson, :lady_violet, :président_amaranth, :signor_emerald],
+      weapon: [:antique_anchor, :poisoned_cocktail, :venemous_snake, :commemorative_sword],
+      location: [:ocean, :dining_hall, :jungle, :swim_up_bar]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # A venomous snake was certainly not within a tide pool.
+      |> CSP.refute(weapon: :venemous_snake, location: :ocean)
+      # Dr. Crimson was lugging around a heavy-weight weapon.
+      |> CSP.assert(murdle, suspect: :dr_crimson, weapon: [:antique_anchor])
+      # The tallest suspect kept accusing the person who had a commemorative sword.
+      |> CSP.refute(suspect: :président_amaranth, weapon: :commemorative_sword)
+      # Signor Emerald was in a place coincidentally referenced in Dame Obsidian's famous “unauthorized autobiography.”
+      |> CSP.assert(murdle, suspect: :signor_emerald, location: :dining_hall)
+      # Forensics determined a weapon made at least partially out of chemicals was present at the swim-up bar.
+      |> CSP.assert(murdle, weapon: :poisoned_cocktail, location: :swim_up_bar)
+      # The shortest suspect had a poisoned cocktail.
+      |> CSP.assert(murdle, suspect: :lady_violet, weapon: :poisoned_cocktail)
+      |> CSP.propagate(murdle)
+
+    # The retired explorer's body was found amongst thick vines.
+    assert %{suspect: [:président_amaranth], weapon: [:venemous_snake]} ==
+             get_in(state, [:location, :jungle])
+  end
+
+  test "The Mystery of the Body in the Sky (2025-09-16)" do
+    murdle = %{
+      suspect: [:chancellor_tuscany, :agent_fuchsia, :coach_raspberry],
+      weapon: [:snowboard, :ski_pole, :chainsaw],
+      location: [:bar_in_town, :lodge, :ski_lift],
+      motive: [:hide_an_affair, :fight_for_the_revolution, :see_what_it_felt_like_to_kill]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # The suspect who wanted to see what it felt like to kill had a weapon made at least partially of wood.
+      |> CSP.assert(murdle, motive: :see_what_it_felt_like_to_kill, weapon: :snowboard)
+      # The suspect at the lodge had blond hair.
+      |> CSP.assert(murdle, suspect: :coach_raspberry, location: :lodge)
+      # The second tallest suspect had not been in a bar in town.
+      |> CSP.refute(suspect: :agent_fuchsia, location: :bar_in_town)
+      # Whoever wanted to hide an affair had blue eyes.
+      |> CSP.assert(murdle, suspect: :coach_raspberry, motive: :hide_an_affair)
+      # Either Chancellor Tuscany brought a ski pole or Coach Raspberry was in a bar in town. (But not both!)
+      |> CSP.mutually_exclusive(murdle, [
+        [suspect: :chancellor_tuscany, weapon: :ski_pole],
+        [suspect: :coach_raspberry, location: :bar_in_town]
+      ])
+
+    # The murder took place in the sky.
+    assert %{
+             suspect: [:agent_fuchsia],
+             weapon: [:snowboard],
+             motive: [:see_what_it_felt_like_to_kill]
+           } == get_in(state, [:location, :ski_lift])
+  end
+
+  test "Deductive Logico and the Case of the Murdered Preacher (2025-09-17)" do
+    murdle = %{
+      suspect: [:earl_grey, :mrs_ruby, :miss_saffron],
+      weapon: [:yarn, :string_of_prayer_beads, :wine_bottle],
+      location: [:choir_loft, :graveyard, :vestibule]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # Traces of a weapon made of wool were found in the choir loft.
+      |> CSP.assert(murdle, weapon: :yarn, location: :choir_loft)
+      # Miss Saffron was clearly flirting with the person who had a string of prayer beads.
+      |> CSP.refute(suspect: :miss_saffron, weapon: :string_of_prayer_beads)
+
+    statements = [
+      # Earl Grey: Mrs. Ruby was in the graveyard.
+      {:earl_grey, :assert, suspect: :mrs_ruby, location: :graveyard},
+      # Mrs. Ruby: Well well well, Earl Grey was in the vestibule.
+      {:mrs_ruby, :assert, suspect: :earl_grey, location: :vestibule},
+      # Miss Saffron: Mrs. Ruby brought a wine bottle.
+      {:miss_saffron, :assert, suspect: :mrs_ruby, weapon: :wine_bottle}
+    ]
+
+    {suspect, state} = CSP.evaluate_statements(state, murdle, statements)
+
+    assert :miss_saffron == suspect
+
+    assert %{location: [:choir_loft], weapon: [:yarn]} == get_in(state, [:suspect, suspect])
+  end
+
+  test "The Calculated Case of the Murder by the Bungalows (2025-09-18)" do
+    murdle = %{
+      suspect: [:mayor_honey, :officer_copper, :major_red, :comrade_champagne],
+      weapon: [:murdle_volume_1, :film_strip, :bad_review, :antique_typewriter],
+      location: [:watertower, :post_production_lab, :prop_shop, :bungalows]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # The second shortest suspect thought they were in love with the person who brought a bad review.
+      |> CSP.refute(suspect: :comrade_champagne, weapon: :bad_review)
+      # A film strip was discovered in an empty watertower.
+      |> CSP.assert(murdle, weapon: :film_strip, location: :watertower)
+      # A light-weight weapon was found in the post-production lab.
+      |> CSP.refute(
+        location: :post_production_lab,
+        weapon: [:murdle_volume_1, :antique_typewriter]
+      )
+      # Murdle: Volume 1 was certainly not next to a fake knife.
+      |> CSP.refute(weapon: :murdle_volume_1, location: :prop_shop)
+      # A brown hair was found by the watertower.
+      |> CSP.refute(location: :watertower, suspect: [:officer_copper, :comrade_champagne])
+      # Whoever was in the prop shop was right-handed.
+      |> CSP.assert(murdle, location: :prop_shop, suspect: :officer_copper)
+      # Either Officer Copper brought an antique typewriter or Mayor Honey was in the post-production lab. (But not both!)
+      |> CSP.mutually_exclusive(murdle, [
+        [suspect: :officer_copper, weapon: :antique_typewriter],
+        [suspect: :mayor_honey, location: :post_production_lab]
+      ])
+
+    # The murder took place by the bungalows.
+    assert %{suspect: [:comrade_champagne], weapon: [:murdle_volume_1]} ==
+             get_in(state, [:location, :bungalows])
+  end
+
+  test "The Complicated Case of the Cancer with the Fire Extinguisher (2025-09-19)" do
+    murdle = %{
+      suspect: [
+        :viscount_eminence,
+        :bishop_azure,
+        :brother_brownstone,
+        :admiral_navy,
+        :sister_lapis
+      ],
+      weapon: [
+        :fire_extinguisher,
+        :surgical_scalpel,
+        :syringe_filled_with_kcl,
+        :vial_of_acid,
+        :heavy_microscope
+      ],
+      location: [:gift_shop, :break_room, :waiting_room, :richest_patients_room, :parking_lot]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # This fingerprint was found in the richest patient’s room.
+      |> CSP.assert(murdle, suspect: :viscount_eminence, location: :richest_patients_room)
+      # Sister Lapis never set foot in the waiting room.
+      |> CSP.refute(suspect: :sister_lapis, location: :waiting_room)
+      # Sister Lapis brought a syringe filled with KCl.
+      |> CSP.assert(murdle, suspect: :sister_lapis, weapon: :syringe_filled_with_kcl)
+      # Whoever had a vial of acid was left-handed.
+      |> CSP.refute(weapon: :vial_of_acid, suspect: [:bishop_azure, :admiral_navy, :sister_lapis])
+      # A fire extinguisher was brought by a member of The Blazing Denomination of the Mysterious Saint, and only Cancers are allowed to join the The Blazing Denomination of the Mysterious Saint.
+      |> CSP.refute(
+        weapon: :fire_extinguisher,
+        suspect: [:viscount_eminence, :bishop_azure, :brother_brownstone]
+      )
+      # A tiny slide was seen outdoors.
+      |> CSP.assert(murdle, weapon: :heavy_microscope, location: :parking_lot)
+      # Bishop Azure and the person who brought a heavy microscope had a history together.
+      |> CSP.refute(suspect: :bishop_azure, weapon: :heavy_microscope)
+      # Either Admiral Navy was behind a vending machine or Bishop Azure was in the parking lot. (But not both!)
+      |> CSP.mutually_exclusive(murdle, [
+        [suspect: :admiral_navy, location: :break_room],
+        [suspect: :bishop_azure, location: :parking_lot]
+      ])
+
+    # The doctor's body was found next to the discount rack.
+    assert %{suspect: [:sister_lapis], weapon: [:syringe_filled_with_kcl]} ==
+             get_in(state, [:location, :gift_shop])
   end
 end
