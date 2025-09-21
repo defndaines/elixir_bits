@@ -542,4 +542,123 @@ defmodule ConstraintSatisfactionTest do
     assert %{suspect: [:sister_lapis], weapon: [:syringe_filled_with_kcl]} ==
              get_in(state, [:location, :gift_shop])
   end
+
+  test "The Body-of-the-Greenskeeper Murder (2025-09-20)" do
+    murdle = %{
+      suspect: [:sir_rulean, :dame_obsidian, :silverton_the_legend, :judge_pine],
+      weapon: [:first_place_trophy, :bottle_of_wine, :spork, :golf_club],
+      location: [:eighteenth_hole, :tennis_courts, :pool, :caddy_shack],
+      motive: [
+        :fight_for_the_revolution,
+        :eliminate_a_spy,
+        :break_into_the_industry,
+        :rob_the_victim
+      ]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # A rubber-detector gave a positive reading on Silverton the Legend.
+      |> CSP.assert(murdle, suspect: :silverton_the_legend, weapon: :golf_club)
+      # A spork was discovered beneath a literal red flag.
+      |> CSP.assert(murdle, weapon: :spork, location: :eighteenth_hole)
+      # The person with a first place trophy wanted to fight for the revolution.
+      |> CSP.assert(murdle, weapon: :first_place_trophy, motive: :fight_for_the_revolution)
+      # This fingerprint was found at the pool.
+      |> CSP.assert(murdle, suspect: :judge_pine, location: :pool)
+      # Whoever wanted to rob the victim was left-handed.
+      |> CSP.assert(murdle, motive: :rob_the_victim, suspect: :dame_obsidian)
+      # A weapon made (at least) in part of plastic was brought by the person who wanted to eliminate a spy.
+      |> CSP.assert(murdle, weapon: :spork, motive: :eliminate_a_spy)
+
+    statements = [
+      # Sir Rulean: Dame Obsidian did not bring a golf club.
+      {:sir_rulean, :refute, suspect: :dame_obsidian, weapon: :golf_club},
+      # Dame Obsidian: A thought: a first-place trophy was in the caddy shack.
+      {:dame_obsidian, :assert, weapon: :first_place_trophy, location: :caddy_shack},
+      # Silverton the Legend: This is how it happened: I was in the caddy shack.
+      {:silverton_the_legend, :assert, suspect: :silverton_the_legend, location: :caddy_shack},
+      # Judge Pine: Dame Obsidian was not in the caddy shack.
+      {:judge_pine, :refute, suspect: :dame_obsidian, location: :caddy_shack}
+    ]
+
+    {suspect, state} = CSP.evaluate_statements(state, murdle, statements)
+
+    assert suspect == :dame_obsidian
+
+    assert %{location: [:tennis_courts], weapon: [:bottle_of_wine], motive: [:rob_the_victim]} ==
+             get_in(state, [:suspect, suspect])
+  end
+
+  test "The Calculated Case of the No-Longer-Living Inspector Irratino (2025-09-21)" do
+    murdle = %{
+      suspect: [
+        :president_amaranth,
+        :agent_fuchsia,
+        :miss_saffron,
+        :comrade_champagne,
+        :sister_lapis,
+        :dame_obsidian
+      ],
+      weapon: [
+        :bottle_of_cabernet_toilet_wine,
+        :lawyer,
+        :diamond_encrusted_skeleton_key,
+        :deck_of_marot_cards,
+        :pair_of_literal_golden_handcuffs,
+        :shiv_made_from_a_mont_blanc
+      ],
+      location: [
+        :spa,
+        :michelin_starred_cafeteria,
+        :tennis_court,
+        :movie_theater,
+        :private_suite,
+        :rec_room
+      ]
+    }
+
+    state =
+      murdle
+      |> CSP.build_state()
+      # The other suspect with the same height as Miss Saffron was seen hanging around in the rec room.
+      |> CSP.assert(murdle, suspect: :sister_lapis, location: :rec_room)
+      # A loose diamond was discovered by a video game console.
+      |> CSP.assert(murdle, weapon: :diamond_encrusted_skeleton_key, location: :rec_room)
+      # Whoever was in the movie theater had a light-weight weapon.
+      |> CSP.refute(
+        location: :movie_theater,
+        weapon: [
+          :bottle_of_cabernet_toilet_wine,
+          :lawyer,
+          :pair_of_literal_golden_handcuffs
+        ]
+      )
+      # Analysts discovered traces of a weapon made of paper on the clothing of Dame Obsidian.
+      |> CSP.assert(murdle, suspect: :dame_obsidian, weapon: :deck_of_marot_cards)
+      # A pair of literal golden handcuffs was reflected in brown eyes.
+      |> CSP.refute(
+        weapon: :pair_of_literal_golden_handcuffs,
+        suspect: [
+          :president_amaranth,
+          :miss_saffron,
+          :comrade_champagne,
+          :dame_obsidian
+        ]
+      )
+      # Agent Fuchsia was seen hanging around beside a non GMO dinner.
+      |> CSP.assert(murdle, suspect: :agent_fuchsia, location: :michelin_starred_cafeteria)
+      # A stain from very expensive ink was found next to a net.
+      |> CSP.assert(murdle, weapon: :shiv_made_from_a_mont_blanc, location: :tennis_court)
+      # This fingerprint was found on a bottle of cabernet toilet wine.
+      |> CSP.assert(murdle, suspect: :comrade_champagne, weapon: :bottle_of_cabernet_toilet_wine)
+      # Miss Saffron was seen next to a King-sized bed.
+      |> CSP.assert(murdle, suspect: :miss_saffron, location: :private_suite)
+      |> CSP.propagate(murdle)
+
+    # The murder took place wet.
+    assert %{suspect: [:comrade_champagne], weapon: [:bottle_of_cabernet_toilet_wine]} ==
+             get_in(state, [:location, :spa])
+  end
 end
