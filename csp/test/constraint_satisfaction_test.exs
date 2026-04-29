@@ -82,7 +82,7 @@ defmodule ConstraintSatisfactionTest do
 
   test "The Case of the Corpse under Hot Water (2025-09-08)" do
     murdle = %{
-      suspect: [:tuscany, :vermillion, :aureolin, :tangerine],
+      suspect: [:tuscany, :vermilion, :aureolin, :tangerine],
       weapon: [:brick, :bow, :axe, :tea],
       location: [:spa, :lake, :ruins, :tent]
     }
@@ -280,7 +280,7 @@ defmodule ConstraintSatisfactionTest do
 
     statements = [
       # Earl Grey: A snowglobe was at the boutique hotel.
-      {:eary_grey, :assert, weapon: :snowglobe, location: :boutique_hotel},
+      {:earl_grey, :assert, weapon: :snowglobe, location: :boutique_hotel},
       # Dr. Crimson: I did not bring a stone dagger.
       {:dr_crimson, :refute, suspect: :dr_crimson, weapon: :stone_dagger},
       # Secretary Celadon: Dr. Crimson was not in the gift shop.
@@ -367,7 +367,7 @@ defmodule ConstraintSatisfactionTest do
   test "Deductive Logico Cracks the Case of the Murder amongst Thick Vines (2025-09-15)" do
     murdle = %{
       suspect: [:dr_crimson, :lady_violet, :président_amaranth, :signor_emerald],
-      weapon: [:antique_anchor, :poisoned_cocktail, :venemous_snake, :commemorative_sword],
+      weapon: [:antique_anchor, :poisoned_cocktail, :venomous_snake, :commemorative_sword],
       location: [:ocean, :dining_hall, :jungle, :swim_up_bar]
     }
 
@@ -375,7 +375,7 @@ defmodule ConstraintSatisfactionTest do
       murdle
       |> CSP.build_state()
       # A venomous snake was certainly not within a tide pool.
-      |> CSP.refute(weapon: :venemous_snake, location: :ocean)
+      |> CSP.refute(weapon: :venomous_snake, location: :ocean)
       # Dr. Crimson was lugging around a heavy-weight weapon.
       |> CSP.assert(murdle, suspect: :dr_crimson, weapon: [:antique_anchor])
       # The tallest suspect kept accusing the person who had a commemorative sword.
@@ -389,7 +389,7 @@ defmodule ConstraintSatisfactionTest do
       |> CSP.propagate(murdle)
 
     # The retired explorer's body was found amongst thick vines.
-    assert %{suspect: [:président_amaranth], weapon: [:venemous_snake]} ==
+    assert %{suspect: [:président_amaranth], weapon: [:venomous_snake]} ==
              get_in(state, [:location, :jungle])
   end
 

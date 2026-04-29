@@ -9,8 +9,8 @@ defmodule Queens do
   def new(opts \\ []) do
     black = Keyword.get(opts, :black)
     white = Keyword.get(opts, :white)
-    if invalid_queen?(black), do: raise(ArgumentError, message: "invalid postition")
-    if invalid_queen?(white), do: raise(ArgumentError, message: "invalid postition")
+    if invalid_queen?(black), do: raise(ArgumentError, message: "invalid position")
+    if invalid_queen?(white), do: raise(ArgumentError, message: "invalid position")
     if black == white, do: raise(ArgumentError, message: "cannot occupy same space")
     %Queens{black: black, white: white}
   end
